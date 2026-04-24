@@ -1,5 +1,4 @@
 import express from 'express';
-import 'dotenv/config';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -20,8 +19,10 @@ import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { config as loadDotEnvFile } from 'dotenv';
 import { logger, httpLogger } from '@packages/logger';
 import { loadEnv } from '@packages/config';
 import { authenticateJwt, requireRole, validateBody } from '@packages/auth-middleware';
@@ -30,6 +31,11 @@ import { prisma } from '@packages/db';
 import { publishEvent, subscribeEvent } from '@packages/events';
 import type { BailStatus, IncidentStatus, UserRole, WarrantStatus } from '@packages/types';
 import { z } from 'zod';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const workspaceRoot = path.resolve(__dirname, '../../../');
+loadDotEnvFile({ path: path.join(workspaceRoot, '.env') });
 
 const env = loadEnv({
   ...process.env,
