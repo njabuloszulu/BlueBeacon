@@ -1,4 +1,5 @@
 import express from 'express';
+import 'dotenv/config';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -35,6 +36,10 @@ const env = loadEnv({
   SERVICE_NAME: process.env.SERVICE_NAME ?? 'api-gateway',
   PORT: process.env.PORT ?? '4000'
 });
+
+if (!env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required. Add it to your .env before starting api-gateway.');
+}
 
 const app = express();
 const server = createServer(app);
