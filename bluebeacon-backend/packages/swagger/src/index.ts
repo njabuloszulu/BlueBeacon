@@ -19,6 +19,19 @@ type GatewayServiceSpec = {
   specUrl: string;
 };
 
+type MergedSpecSource = {
+  prefix: string;
+  specPath: string | URL;
+  tag: string;
+};
+
+type MergedDocsOptions = {
+  title: string;
+  port: number;
+  specs: MergedSpecSource[];
+  exposeDocs?: DocsExposure;
+};
+
 function normalizePath(path: string | URL): string {
   return path instanceof URL ? fileURLToPath(path) : path;
 }
@@ -26,6 +39,42 @@ function normalizePath(path: string | URL): string {
 function readSpec(path: string | URL): JsonObject {
   const raw = readFileSync(normalizePath(path), 'utf-8');
   return JSON.parse(raw) as JsonObject;
+}
+
+function normalizePrefix(prefix: string): string {
+  if (!prefix.startsWith('/')) {
+    return `/${prefix}`;
+  }
+  return prefix.endsWith('/') && prefix.length > 1 ? prefix.slice(0, -1) : prefix;
+}
+
+const HTTP_VERBS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace'] as const;
+
+/**
+ * Swagger UI groups operations by each operation's `tags` array. Top-level `tags` only
+ * declares tag metadata; without per-operation tags, everything appears under "default".
+ */
+function tagPathItemOperations(pathItem: JsonObject, tag: string): JsonObject {
+  const out: JsonObject = { ...pathItem };
+  for (const verb of HTTP_VERBS) {
+    const op = out[verb];
+    if (op && typeof op === 'object' && !Array.isArray(op)) {
+      out[verb] = { ...(op as JsonObject), tags: [tag] };
+    }
+  }
+  return out;
+}
+
+function prefixAndTagPaths(prefix: string, tag: string, paths: JsonObject): JsonObject {
+  const out: JsonObject = {};
+  const normalizedPrefix = normalizePrefix(prefix);
+  for (const [key, value] of Object.entries(paths)) {
+    const route = key.startsWith('/') ? key : `/${key}`;
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      out[`${normalizedPrefix}${route}`] = tagPathItemOperations(value as JsonObject, tag);
+    }
+  }
+  return out;
 }
 
 function resolveExposeDocs(input?: DocsExposure): DocsExposure {
@@ -107,4 +156,40 @@ export function mountAggregatorDocs(
       swaggerOptions: { urls }
     })
   );
+}
+
+export function mountMergedGatewayDocs(app: Express, options: MergedDocsOptions): void {
+  const exposure = resolveExposeDocs(options.exposeDocs);
+  const guards = docsGuards(exposure);
+  const mergedPaths: JsonObject = {};
+  const mergedTags = options.specs.map((entry) => ({
+    name: entry.tag,
+    description: `${entry.tag} domain`
+  }));
+
+  for (const specSource of options.specs) {
+    const loaded = readSpec(specSource.specPath);
+    const paths = ((loaded.paths as JsonObject | undefined) ?? {}) as JsonObject;
+    Object.assign(mergedPaths, prefixAndTagPaths(specSource.prefix, specSource.tag, paths));
+  }
+
+  const spec = withSharedComponents(
+    withServer(
+      {
+        openapi: '3.1.0',
+        info: {
+          title: options.title,
+          version: '0.1.0'
+        },
+        tags: mergedTags,
+        paths: mergedPaths
+      },
+      options.port
+    )
+  );
+
+  app.get('/openapi.json', ...guards, (_req, res) => {
+    res.json(spec);
+  });
+  app.use('/docs', ...guards, swaggerUi.serve, swaggerUi.setup(spec, { explorer: true }));
 }

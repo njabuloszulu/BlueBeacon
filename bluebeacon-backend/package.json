@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --runInBand",
     "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev --filter=@apps/api-gateway",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",

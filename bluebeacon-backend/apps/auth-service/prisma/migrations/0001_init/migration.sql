@@ -1,1 +1,0 @@
--- Baseline migration generated from schema.prisma

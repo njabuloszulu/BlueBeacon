@@ -7,16 +7,15 @@ Scope: backend only.
 ## Implemented Backend Features
 
 ### Architecture and Platform
-- Monorepo structure with separate backend services under `apps/`.
-- API gateway service with service routing/proxy and request ID middleware.
+- Monorepo structure with backend packages under `apps/` and `packages/`.
+- Unified API service hosted by `api-gateway` with consolidated route modules and request ID middleware.
 - Shared backend packages for types, config, logging, events, audit helpers, and auth middleware.
 - Local infra baseline via Docker Compose: PostgreSQL, Redis, NATS, MinIO, ClamAV, Traefik.
 
 ### Service Scaffolding
-- All major backend services from the spec are present:
-  - `api-gateway`, `auth-service`, `incident-service`, `case-service`, `arrest-service`,
-    `warrant-service`, `evidence-service`, `dispatch-service`, `map-service`,
-    `notification-service`, `document-service`, `admin-service`.
+- Backend capabilities from the spec are available through one runtime (`api-gateway`) under prefixed route groups:
+  - `/auth`, `/incident`, `/case`, `/arrest`, `/warrant`, `/evidence`,
+    `/dispatch`, `/map`, `/notification`, `/document`, `/admin`.
 
 ### Core API Coverage (Baseline)
 - Auth: register/login/refresh/logout, lockout logic, SAR endpoint stub.
