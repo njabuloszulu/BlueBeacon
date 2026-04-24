@@ -65,7 +65,10 @@ export function validateBody<T>(schema: ZodType<T>) {
     if (!parsed.success) {
       res.status(400).json({
         message: 'Invalid request payload',
-        issues: parsed.error.issues.map((issue) => issue.message)
+        issues: parsed.error.issues.map((issue) => ({
+          path: issue.path,
+          message: issue.message
+        }))
       });
       return;
     }

@@ -31,6 +31,8 @@ import { prisma } from '@packages/db';
 import { publishEvent, subscribeEvent } from '@packages/events';
 import type { BailStatus, IncidentStatus, UserRole, WarrantStatus } from '@packages/types';
 import { z } from 'zod';
+import { registerSchema } from './validation/register.schema';
+import { getStationValidationIssue } from './validation/register-route-guards';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,15 +127,6 @@ function signAccessToken(sub: string, role: UserRole, stationId?: string): strin
 }
 
 const failedAttempts = new Map<string, number>();
-const registerSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.string().min(3),
-  stationId: z.string().optional(),
-  idNumber: z.string().optional(),
-  phone: z.string().optional()
-});
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1)
@@ -142,7 +135,18 @@ const loginSchema = z.object({
 const auth = express.Router();
 auth.get('/health', (_req, res) => res.json({ service: 'auth-service', status: 'ok' }));
 auth.post('/register', validateBody(registerSchema), async (req, res) => {
-  const { fullName, email, password, role, stationId, idNumber, phone } = registerSchema.parse(req.body);
+  const { fullName, email, password, role, stationId, idNumber, phone } = req.body;
+
+  const stationIssue = await getStationValidationIssue(stationId, (id) =>
+    prisma.station.findUnique({ where: { id }, select: { id: true } })
+  );
+  if (stationIssue) {
+    return res.status(400).json({
+      message: 'Invalid request payload',
+      issues: [stationIssue]
+    });
+  }
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return res.status(409).json({ message: 'Email already in use.' });
   const created = await prisma.user.create({

@@ -5,6 +5,16 @@ import crypto from 'node:crypto';
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
+  const station = await prisma.station.findUnique({ where: { id: '1' } });
+  if (!station) {
+    await prisma.station.create({
+      data: {
+        id: '1',
+        name: 'BlueBeacon Central Station'
+      }
+    });
+  }
+
   const existingAdmin = await prisma.user.findUnique({ where: { email: 'admin@bluebeacon.local' } });
   if (!existingAdmin) {
     await prisma.user.create({
