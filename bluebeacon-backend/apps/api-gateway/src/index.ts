@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Redis } from 'ioredis';
 import { randomUUID } from 'node:crypto';
 import { logger, httpLogger } from '@packages/logger';
@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 const limiter = rateLimit({
   windowMs: 60_000,
   limit: 100,
-  keyGenerator: (req) => req.ip ?? 'unknown'
+  keyGenerator: (req) => ipKeyGenerator(req.ip)
 });
 app.use(limiter);
 
@@ -39,7 +39,7 @@ const sensitiveLimiter = rateLimit({
   limit: 30,
   keyGenerator: (req) => {
     const user = req.headers['x-user-id'];
-    return user ? String(user) : req.ip ?? 'unknown';
+    return user ? String(user) : ipKeyGenerator(req.ip);
   }
 });
 

@@ -25,7 +25,7 @@ Scope: backend only.
 - Arrest: create arrest, bail apply endpoint, cell board, suspect check endpoint.
 - Warrant: create warrant, review, PDF generation endpoint, expiry endpoint.
 - Evidence: create evidence, custody updates, custody log endpoint, barcode endpoint.
-- Dispatch: call creation, reassignment, unit position updates, websocket event broadcast.
+- Dispatch: call creation, reassignment, unit position updates, websocket event broadcast`.
 - Map: map layers endpoint (GeoJSON), hotspot create/expire, aggregation stub endpoint.
 - Notification: preferences, notify endpoint, officer broadcast endpoint, SOS endpoint.
 - Document: generic document create and PDF stream endpoint.

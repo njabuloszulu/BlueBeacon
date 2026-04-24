@@ -12,7 +12,11 @@ import { appendAuditEvent, prisma } from '@packages/db';
 import { authenticateJwt, requireRole } from '@packages/auth-middleware';
 import { mountServiceDocs } from '@packages/swagger';
 
-const env = loadEnv();
+const env = loadEnv({
+  ...process.env,
+  SERVICE_NAME: process.env.SERVICE_NAME ?? 'incident-service',
+  PORT: process.env.PORT ?? '4002'
+});
 const app = express();
 const server = createServer(app);
 const io = new SocketServer(server, { cors: { origin: '*' } });
