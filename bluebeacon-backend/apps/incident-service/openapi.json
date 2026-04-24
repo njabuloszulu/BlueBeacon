@@ -1,0 +1,100 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Incident Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Incident health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/incidents": {
+      "post": {
+        "summary": "Create incident with optional media uploads",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["reporterId", "incidentType", "description", "locationLat", "locationLng"],
+                "properties": {
+                  "reporterId": { "type": "string" },
+                  "incidentType": { "type": "string" },
+                  "description": { "type": "string" },
+                  "locationLat": { "type": "number" },
+                  "locationLng": { "type": "number" },
+                  "media": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "items": { "type": "string", "format": "binary" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Incident created" }
+        }
+      }
+    },
+    "/incidents/{id}/status": {
+      "get": {
+        "summary": "Get incident status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Incident status payload" },
+          "404": { "description": "Incident not found" }
+        }
+      }
+    },
+    "/incidents/{id}/transition": {
+      "post": {
+        "summary": "Transition incident state",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nextStatus"],
+                "properties": {
+                  "nextStatus": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Transition applied" },
+          "400": { "description": "Invalid transition" },
+          "404": { "description": "Incident not found" }
+        }
+      }
+    },
+    "/incidents/{id}/accept": {
+      "post": {
+        "summary": "Accept assigned incident",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Incident accepted" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Incident not found" }
+        }
+      }
+    }
+  }
+}

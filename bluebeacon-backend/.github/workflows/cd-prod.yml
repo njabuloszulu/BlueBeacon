@@ -1,0 +1,21 @@
+name: CD Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promote release artifact
+        run: echo "Promote staging artifact to production registry"
+      - name: Blue/green deploy
+        run: echo "argo rollouts set image + promote"
+      - name: Monitor SLO error budget
+        run: echo "check error rate from Prometheus"
+      - name: Auto rollback on >1% errors
+        run: echo "argo rollouts abort + rollback"
+      - name: DR drill validation
+        run: echo "validate latest backup snapshot and PITR checkpoint"

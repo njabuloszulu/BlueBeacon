@@ -1,0 +1,17 @@
+{
+  "title": "BlueBeacon Backend Overview",
+  "panels": [
+    {
+      "title": "API Latency P95",
+      "type": "timeseries"
+    },
+    {
+      "title": "Error Rate",
+      "type": "timeseries"
+    },
+    {
+      "title": "Notification Delivery Rate",
+      "type": "stat"
+    }
+  ]
+}

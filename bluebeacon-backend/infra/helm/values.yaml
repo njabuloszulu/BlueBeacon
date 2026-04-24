@@ -1,0 +1,10 @@
+services:
+  api-gateway:
+    image: api-gateway:latest
+    port: 4000
+  auth-service:
+    image: auth-service:latest
+    port: 4001
+  incident-service:
+    image: incident-service:latest
+    port: 4002

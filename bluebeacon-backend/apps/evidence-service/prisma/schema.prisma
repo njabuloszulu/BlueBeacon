@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Evidence {
+  evidenceId       String   @id @default(uuid()) @map("evidence_id")
+  docketId         String   @map("docket_id")
+  description      String
+  evidenceType     String   @map("evidence_type")
+  barcode          String   @unique
+  storageLocation  String   @map("storage_location")
+  collectedBy      String   @map("collected_by")
+  collectedAt      DateTime @map("collected_at")
+  chainOfCustody   Json     @map("chain_of_custody")
+}

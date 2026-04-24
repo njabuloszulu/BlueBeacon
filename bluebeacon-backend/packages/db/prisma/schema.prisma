@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  fullName      String
+  idNumber      String?     @unique
+  email         String      @unique
+  phone         String?
+  passwordHash  String
+  role          String
+  stationId     String?
+  isVerified    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  sessions      Session[]
+  incidents     Incident[]  @relation("IncidentReporter")
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  refreshHash String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid())
+  actorId     String?
+  action      String
+  entity      String
+  entityId    String
+  beforeState Json?
+  afterState  Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
+
+model Incident {
+  id                String    @id @default(uuid())
+  reporterId        String?
+  incidentType      String
+  description       String
+  locationLat       Float
+  locationLng       Float
+  status            String
+  assignedOfficerId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  reporter          User?     @relation("IncidentReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  media             IncidentMedia[]
+}
+
+model IncidentMedia {
+  id         String   @id @default(uuid())
+  incidentId String
+  objectKey  String
+  mediaType  String
+  uploadedAt DateTime @default(now())
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+}
+
+model Docket {
+  id            String   @id @default(uuid())
+  incidentId     String
+  leadOfficerId  String?
+  stationId      String?
+  notes          Json?
+  status         String
+  prosecutorId   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  charges        DocketCharge[]
+}
+
+model DocketCharge {
+  id       String @id @default(uuid())
+  docketId String
+  charge   String
+  docket   Docket @relation(fields: [docketId], references: [id], onDelete: Cascade)
+}
+
+model Arrest {
+  id                String   @id @default(uuid())
+  suspectFullName   String
+  suspectIdNumber   String
+  biometricRef      String?
+  arrestingOfficerId String?
+  docketId          String
+  charges           Json
+  arrestLocation    String?
+  bailStatus        String
+  bailAmount        Float?
+  cellNumber        String
+  arrestDatetime    DateTime
+  createdAt         DateTime @default(now())
+}
+
+model BailApplication {
+  id         String   @id @default(uuid())
+  arrestId   String
+  warrantId  String?
+  officerId  String
+  judgeId    String?
+  status     String
+  reason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Warrant {
+  id                 String   @id @default(uuid())
+  docketId           String
+  requestingOfficerId String
+  warrantType        String
+  targetName         String?
+  targetAddress      String?
+  judgeId            String?
+  status             String
+  digitalSignature   String?
+  issuedAt           DateTime?
+  expiresAt          DateTime
+  createdAt          DateTime @default(now())
+}
+
+model Evidence {
+  id               String   @id @default(uuid())
+  docketId         String
+  description      String
+  evidenceType     String
+  barcode          String   @unique
+  storageLocation  String?
+  collectedBy      String?
+  collectedAt      DateTime?
+  chainOfCustody   Json
+  disposalStatus   String   @default("active")
+  createdAt        DateTime @default(now())
+}
+
+model Hotspot {
+  id            String   @id @default(uuid())
+  name          String
+  category      String
+  severity      String
+  locationLat   Float
+  locationLng   Float
+  radiusMeters  Int
+  createdBy     String?
+  isActive      Boolean  @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model AlertZone {
+  id            String   @id @default(uuid())
+  title         String
+  severity      String
+  locationLat   Float
+  locationLng   Float
+  radiusMeters  Int
+  createdBy     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model DispatchCall {
+  id           String   @id @default(uuid())
+  incidentId   String
+  severity     String
+  assignedUnit String?
+  status       String
+  createdAt    DateTime @default(now())
+}
+
+model UnitPosition {
+  id         String   @id @default(uuid())
+  unitId     String
+  latitude   Float
+  longitude  Float
+  recordedAt DateTime @default(now())
+}
+
+model NotificationPreference {
+  id           String  @id @default(uuid())
+  userId       String  @unique
+  pushEnabled  Boolean @default(true)
+  smsEnabled   Boolean @default(false)
+  emailEnabled Boolean @default(false)
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  channel    String
+  severity   String
+  message    String
+  delivered  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  documentType String
+  subjectId   String
+  objectKey   String?
+  checksum    String?
+  createdAt   DateTime @default(now())
+}

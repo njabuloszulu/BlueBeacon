@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Arrest Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Arrest health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/arrests": {
+      "post": {
+        "summary": "Create arrest record",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Arrest created" } }
+      }
+    },
+    "/arrests/{id}/bail-apply": {
+      "post": {
+        "summary": "Submit bail application",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Bail application submitted" },
+          "404": { "description": "Arrest not found" }
+        }
+      }
+    },
+    "/bail": {
+      "post": {
+        "summary": "Decide bail application",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Bail decision applied" } }
+      }
+    },
+    "/cells/board": {
+      "get": {
+        "summary": "Get custody board",
+        "responses": { "200": { "description": "Custody board data" } }
+      }
+    },
+    "/cells": {
+      "get": {
+        "summary": "List cells and occupancy",
+        "responses": { "200": { "description": "Cell list" } }
+      }
+    },
+    "/suspects/check": {
+      "get": {
+        "summary": "Check suspect by identifying attributes",
+        "responses": { "200": { "description": "Suspect check result" } }
+      }
+    }
+  }
+}

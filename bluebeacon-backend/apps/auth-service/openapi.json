@@ -1,0 +1,251 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Auth Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Auth health check",
+        "responses": {
+          "200": { "description": "Service health status" }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Register user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["fullName", "email", "password", "role"],
+                "properties": {
+                  "fullName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string" },
+                  "stationId": { "type": "string" },
+                  "idNumber": { "type": "string" },
+                  "phone": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered" },
+          "400": { "description": "Invalid request" },
+          "409": { "description": "Email already in use" }
+        }
+      }
+    },
+    "/verify-identity": {
+      "post": {
+        "summary": "Verify identity details",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId", "idNumber"],
+                "properties": {
+                  "userId": { "type": "string" },
+                  "idNumber": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Identity verification outcome" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Login and issue tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Tokens issued" },
+          "401": { "description": "Invalid credentials" },
+          "423": { "description": "Account locked" }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
+        "summary": "Rotate refresh token",
+        "responses": {
+          "200": { "description": "Access token refreshed" },
+          "401": { "description": "Invalid refresh token" }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Logout and revoke refresh session",
+        "responses": {
+          "204": { "description": "Logged out" }
+        }
+      }
+    },
+    "/mfa/otp": {
+      "post": {
+        "summary": "Issue OTP challenge",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phone"],
+                "properties": {
+                  "phone": { "type": "string" },
+                  "userId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OTP issued" }
+        }
+      }
+    },
+    "/mfa/verify": {
+      "post": {
+        "summary": "Verify OTP and strong factor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId"],
+                "properties": {
+                  "userId": { "type": "string" },
+                  "otp": { "type": "string" },
+                  "hardwareToken": { "type": "string" },
+                  "biometricAssertion": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "MFA verification outcome" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/oauth/token": {
+      "post": {
+        "summary": "OAuth2 compatible token endpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "OAuth token response" },
+          "401": { "description": "Invalid grant" }
+        }
+      }
+    },
+    "/users/{id}/revoke-sessions": {
+      "post": {
+        "summary": "Revoke all user sessions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Sessions revoked" }
+        }
+      }
+    },
+    "/users/{id}/password": {
+      "post": {
+        "summary": "Change user password and revoke sessions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": { "description": "Password updated" },
+          "400": { "description": "Invalid password" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/sar/me": {
+      "get": {
+        "summary": "Subject access request for own profile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "User SAR payload" },
+          "404": { "description": "User not found" }
+        }
+      }
+    }
+  }
+}

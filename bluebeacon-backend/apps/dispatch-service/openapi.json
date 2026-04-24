@@ -1,0 +1,62 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Dispatch Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Dispatch health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/dispatch/calls": {
+      "post": {
+        "summary": "Create dispatch call",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Dispatch call created" } }
+      }
+    },
+    "/dispatch/calls/{id}/reassign": {
+      "patch": {
+        "summary": "Reassign dispatch call",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Dispatch call reassigned" },
+          "404": { "description": "Dispatch call not found" }
+        }
+      }
+    },
+    "/dispatch/units/{unitId}/position": {
+      "post": {
+        "summary": "Update unit GPS position",
+        "parameters": [
+          { "name": "unitId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Position stored" }
+        }
+      }
+    }
+  }
+}

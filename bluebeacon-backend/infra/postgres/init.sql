@@ -1,0 +1,10 @@
+CREATE DATABASE incident_db;
+CREATE DATABASE case_db;
+CREATE DATABASE arrest_db;
+CREATE DATABASE warrant_db;
+CREATE DATABASE evidence_db;
+CREATE DATABASE dispatch_db;
+CREATE DATABASE map_db;
+CREATE DATABASE notification_db;
+CREATE DATABASE document_db;
+CREATE DATABASE admin_db;

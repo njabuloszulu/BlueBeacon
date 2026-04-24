@@ -1,0 +1,87 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Warrant Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Warrant health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/warrants": {
+      "post": {
+        "summary": "Create warrant",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Warrant created" } }
+      }
+    },
+    "/warrants/{id}": {
+      "get": {
+        "summary": "Get warrant by id",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Warrant details" },
+          "404": { "description": "Warrant not found" }
+        }
+      }
+    },
+    "/warrants/{id}/sign": {
+      "put": {
+        "summary": "Sign warrant",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Warrant signed" },
+          "404": { "description": "Warrant not found" }
+        }
+      }
+    },
+    "/warrants/{id}/review": {
+      "post": {
+        "summary": "Alias endpoint for warrant sign/review",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Warrant review applied" },
+          "404": { "description": "Warrant not found" }
+        }
+      }
+    },
+    "/warrants/{id}/pdf": {
+      "get": {
+        "summary": "Render warrant PDF",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Warrant PDF response" },
+          "404": { "description": "Warrant not found" }
+        }
+      }
+    },
+    "/warrants/expire": {
+      "post": {
+        "summary": "Expire overdue warrants and publish notifications",
+        "responses": { "200": { "description": "Expiry run completed" } }
+      }
+    }
+  }
+}

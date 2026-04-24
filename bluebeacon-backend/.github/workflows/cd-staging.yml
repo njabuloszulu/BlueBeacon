@@ -1,0 +1,24 @@
+name: CD Staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - name: Build and push image artifact
+        run: echo "docker build/push with commit SHA tag"
+      - name: Deploy to staging
+        run: echo "helm upgrade --install bluebeacon ./infra/helm --namespace staging"
+      - name: Run smoke tests
+        run: npm run test:e2e

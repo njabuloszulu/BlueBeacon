@@ -1,0 +1,142 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Case Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Case health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/dockets": {
+      "post": {
+        "summary": "Create docket",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Docket created" } }
+      }
+    },
+    "/dockets/from-incident-accepted": {
+      "post": {
+        "summary": "Create docket from accepted incident",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Docket created from incident" } }
+      }
+    },
+    "/dockets/{id}/status": {
+      "patch": {
+        "summary": "Update docket status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nextStatus"],
+                "properties": { "nextStatus": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated" },
+          "400": { "description": "Invalid transition" },
+          "404": { "description": "Docket not found" }
+        }
+      }
+    },
+    "/dockets/{id}/notes": {
+      "get": {
+        "summary": "Get docket notes",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Notes returned" },
+          "404": { "description": "Docket not found" }
+        }
+      },
+      "put": {
+        "summary": "Replace docket notes",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Notes replaced" },
+          "404": { "description": "Docket not found" }
+        }
+      }
+    },
+    "/dockets/{id}/notes/{noteId}": {
+      "patch": {
+        "summary": "Update a single docket note",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "noteId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Note updated" },
+          "404": { "description": "Docket or note not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a docket note",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "noteId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Note deleted" },
+          "404": { "description": "Docket or note not found" }
+        }
+      }
+    },
+    "/dockets/{id}/charges": {
+      "post": {
+        "summary": "Add charge to docket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Charge added" },
+          "404": { "description": "Docket not found" }
+        }
+      }
+    }
+  }
+}

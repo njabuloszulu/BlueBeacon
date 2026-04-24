@@ -1,0 +1,106 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Admin Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Admin health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/audit-events": {
+      "get": {
+        "summary": "List audit events",
+        "responses": { "200": { "description": "Audit events list" } }
+      },
+      "post": {
+        "summary": "Create audit event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Audit event created" } }
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "summary": "Get audit logs",
+        "responses": { "200": { "description": "Audit log payload" } }
+      }
+    },
+    "/users": {
+      "post": {
+        "summary": "Create managed user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" },
+          "409": { "description": "User already exists" }
+        }
+      }
+    },
+    "/analytics/summary": {
+      "get": {
+        "summary": "Get analytics summary",
+        "responses": { "200": { "description": "Summary metrics" } }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "summary": "Get analytics breakdown",
+        "responses": { "200": { "description": "Analytics payload" } }
+      }
+    },
+    "/compliance/sar/{userId}": {
+      "get": {
+        "summary": "Get SAR payload by user",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "SAR payload" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/compliance/retention/purge": {
+      "post": {
+        "summary": "Run retention purge",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Retention purge result" } }
+      }
+    },
+    "/compliance/audit/immutable-sink": {
+      "post": {
+        "summary": "Export immutable audit sink",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Export path returned" } }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus metrics endpoint",
+        "responses": { "200": { "description": "Metrics output" } }
+      }
+    }
+  }
+}

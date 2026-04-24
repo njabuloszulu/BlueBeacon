@@ -1,0 +1,44 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Document Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Document health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/documents/{type}": {
+      "post": {
+        "summary": "Generate document by type",
+        "parameters": [
+          { "name": "type", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Document generated" }
+        }
+      }
+    },
+    "/documents/{id}/pdf": {
+      "get": {
+        "summary": "Render generated document PDF",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "PDF response" },
+          "404": { "description": "Document not found" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Map Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Map health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/map/layers": {
+      "get": {
+        "summary": "Get geojson map layers",
+        "parameters": [
+          { "name": "role", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "GeoJSON feature collection" } }
+      }
+    },
+    "/map/hotspots": {
+      "post": {
+        "summary": "Create hotspot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Hotspot created" } }
+      }
+    },
+    "/hotspots": {
+      "post": {
+        "summary": "Create hotspot (alias endpoint)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Hotspot created" } }
+      }
+    },
+    "/alerts": {
+      "post": {
+        "summary": "Create alert zone",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "201": { "description": "Alert zone created" } }
+      }
+    },
+    "/map/hotspots/{id}/expire": {
+      "patch": {
+        "summary": "Expire hotspot",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Hotspot expired" },
+          "404": { "description": "Hotspot not found" }
+        }
+      }
+    },
+    "/map/hotspots/aggregate-nightly": {
+      "post": {
+        "summary": "Run nightly hotspot aggregation",
+        "responses": {
+          "200": { "description": "Aggregation complete" }
+        }
+      }
+    }
+  }
+}

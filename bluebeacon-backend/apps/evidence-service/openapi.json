@@ -1,0 +1,112 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Evidence Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Evidence health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/evidence": {
+      "post": {
+        "summary": "Upload evidence file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "incidentId": { "type": "string" },
+                  "type": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Evidence accepted" },
+          "400": { "description": "Invalid file or payload" }
+        }
+      }
+    },
+    "/evidence/{id}/custody": {
+      "post": {
+        "summary": "Append custody chain entry",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Custody entry appended" },
+          "404": { "description": "Evidence not found" }
+        }
+      }
+    },
+    "/evidence/{id}/custody-log": {
+      "get": {
+        "summary": "Get custody log",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Custody log returned" },
+          "404": { "description": "Evidence not found" }
+        }
+      }
+    },
+    "/evidence/{id}/barcode.png": {
+      "get": {
+        "summary": "Render evidence barcode PNG",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Barcode image" },
+          "404": { "description": "Evidence not found" }
+        }
+      }
+    },
+    "/evidence/{id}/dispose/approve": {
+      "post": {
+        "summary": "Approve evidence disposal stage",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Disposal approval recorded" },
+          "404": { "description": "Evidence not found" }
+        }
+      }
+    },
+    "/evidence/{id}/dispose": {
+      "put": {
+        "summary": "Finalize evidence disposal",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Disposal state updated" },
+          "404": { "description": "Evidence not found" }
+        }
+      }
+    }
+  }
+}

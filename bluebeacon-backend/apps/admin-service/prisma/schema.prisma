@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuditEvent {
+  auditEventId String   @id @default(uuid()) @map("audit_event_id")
+  actorId      String   @map("actor_id")
+  action       String
+  entity       String
+  entityId     String   @map("entity_id")
+  beforeState  Json?    @map("before_state")
+  afterState   Json?    @map("after_state")
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+}
+
+model AnalyticsSnapshot {
+  analyticsSnapshotId String   @id @default(uuid()) @map("analytics_snapshot_id")
+  metric              String
+  value               Float
+  snapshotAt          DateTime @default(now()) @map("snapshot_at")
+}

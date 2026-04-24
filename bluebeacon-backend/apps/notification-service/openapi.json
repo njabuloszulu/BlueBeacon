@@ -1,0 +1,90 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Notification Service API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Notification health check",
+        "responses": { "200": { "description": "Service health status" } }
+      }
+    },
+    "/preferences/{userId}": {
+      "put": {
+        "summary": "Upsert notification preferences",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Preferences updated" } }
+      }
+    },
+    "/notify": {
+      "post": {
+        "summary": "Send single notification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Notification sent" } }
+      }
+    },
+    "/notifications": {
+      "post": {
+        "summary": "Send single notification (alias)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Notification sent" } }
+      }
+    },
+    "/broadcast/officers": {
+      "post": {
+        "summary": "Broadcast to all officers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Broadcast completed" } }
+      }
+    },
+    "/broadcast": {
+      "post": {
+        "summary": "Broadcast alias endpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "Broadcast completed" } }
+      }
+    },
+    "/sos": {
+      "post": {
+        "summary": "Trigger SOS emergency flow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "type": "object" } }
+          }
+        },
+        "responses": { "200": { "description": "SOS delivered" } }
+      }
+    }
+  }
+}
