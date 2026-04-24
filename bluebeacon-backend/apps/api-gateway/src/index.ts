@@ -11,7 +11,11 @@ import { loadEnv } from '@packages/config';
 import { authenticateJwt } from '@packages/auth-middleware';
 import { mountAggregatorDocs } from '@packages/swagger';
 
-const env = loadEnv();
+const env = loadEnv({
+  ...process.env,
+  SERVICE_NAME: process.env.SERVICE_NAME ?? 'api-gateway',
+  PORT: process.env.PORT ?? '4000'
+});
 const app = express();
 const redis = env.REDIS_URL ? new Redis(env.REDIS_URL) : null;
 
@@ -63,7 +67,9 @@ for (const [prefix, target] of Object.entries(upstream)) {
     createProxyMiddleware({
       target,
       changeOrigin: true,
-      pathRewrite: { [`^/${prefix}`]: '' }
+      // This middleware is mounted at /{prefix}/openapi.json, so Express passes "/" to the proxy.
+      // Always forward to the service's OpenAPI endpoint explicitly.
+      pathRewrite: () => '/openapi.json'
     })
   );
 }

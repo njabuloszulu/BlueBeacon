@@ -14,7 +14,11 @@ import { validateBody } from '@packages/auth-middleware';
 import { mountServiceDocs } from '@packages/swagger';
 import { z } from 'zod';
 
-const env = loadEnv();
+const env = loadEnv({
+  ...process.env,
+  SERVICE_NAME: process.env.SERVICE_NAME ?? 'auth-service',
+  PORT: process.env.PORT ?? '4001'
+});
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
