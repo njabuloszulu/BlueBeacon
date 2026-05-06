@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 const ROLES = [
   {
     id: 'civilian',
-    icon: '👤',
+    icon: 'ðŸ‘¤',
     title: 'Civilian',
     subtitle: 'Report incidents, track cases, pay fines & access services',
     color: 'var(--gn)',
@@ -17,7 +17,7 @@ const ROLES = [
   },
   {
     id: 'officer',
-    icon: '🛡',
+    icon: 'ðŸ›¡',
     title: 'Police Officer',
     subtitle: 'Manage incidents, dockets, dispatch, arrests & evidence',
     color: 'var(--blb)',
@@ -30,7 +30,7 @@ const ROLES = [
   },
   {
     id: 'judge',
-    icon: '⚖',
+    icon: 'âš–',
     title: 'Magistrate / Judge',
     subtitle: 'Review warrants, bail applications & issue court orders',
     color: 'var(--am)',
@@ -72,10 +72,10 @@ export default function Login() {
             boxShadow: '0 0 20px rgba(59,130,246,.4)',
           }} />
           <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 18, fontWeight: 600, letterSpacing: '.1em' }}>
-            DPS · BLUEBEACON
+            DPS Â· BLUEBEACON
           </span>
         </div>
-        <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
+        <h1 style={{ fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
           Digital Policing System
         </h1>
         <p style={{ fontSize: 13, color: 'var(--txm)', maxWidth: 440 }}>
@@ -107,14 +107,14 @@ export default function Login() {
             <div style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 3, fontSize: 9, fontWeight: 700, letterSpacing: '.12em', background: role.badgeBg, color: role.badgeTx, marginBottom: 10 }}>
               {role.badge}
             </div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, fontFamily: "'Syne',sans-serif", color: role.color }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, fontFamily: "'IBM Plex Sans',sans-serif", color: role.color }}>
               {role.title}
             </div>
             <div style={{ fontSize: 11, color: 'var(--txm)', lineHeight: 1.6 }}>
               {role.subtitle}
             </div>
             <div style={{ marginTop: 14, fontSize: 11, color: role.color, fontFamily: "'IBM Plex Mono',monospace", letterSpacing: '.04em' }}>
-              Enter portal →
+              Enter portal â†’
             </div>
           </button>
         ))}
@@ -124,9 +124,9 @@ export default function Login() {
       <div style={{ marginTop: 40, textAlign: 'center', fontSize: 10, color: 'var(--txd)', fontFamily: "'IBM Plex Mono',monospace" }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 6 }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gn)', boxShadow: '0 0 5px var(--gn)' }} />
-          ALL SYSTEMS OPERATIONAL · dps.gov.za
+          ALL SYSTEMS OPERATIONAL Â· dps.gov.za
         </div>
-        <div style={{ color: 'var(--txd)' }}>Demo environment — no real data is transmitted or stored</div>
+        <div style={{ color: 'var(--txd)' }}>Demo environment â€” no real data is transmitted or stored</div>
       </div>
     </div>
   );

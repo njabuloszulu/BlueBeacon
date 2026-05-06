@@ -57,14 +57,14 @@ const ROLE_META = {
   judge:    { label: 'JUDGE',    color: 'var(--am)',  bg: 'rgba(245,158,11,.15)', badgeBg: 'var(--amd)', badgeTx: 'var(--am)' },
 };
 
-export default function Sidebar() {
+export default function Sidebar({ menuOpen, onClose }) {
   const { role, user, logout } = useApp();
   const navigate = useNavigate();
   const nav = NAV_MAP[role] || [];
   const meta = ROLE_META[role] || ROLE_META.civilian;
 
   return (
-    <aside style={{
+    <aside className={`sidebar${menuOpen ? ' sidebar-open' : ''}`} style={{
       width: 200,
       minWidth: 200,
       background: 'var(--s2)',
@@ -97,6 +97,7 @@ export default function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onClose}
               style={({ isActive }) => ({
                 padding: '7px 12px',
                 display: 'flex',

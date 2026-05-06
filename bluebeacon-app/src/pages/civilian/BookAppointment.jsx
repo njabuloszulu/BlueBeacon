@@ -55,7 +55,7 @@ export default function BookAppointment() {
         <div className="page-desc">Skip the queue by booking your visit in advance. Available at all major stations.</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, maxWidth: 900 }}>
+      <div className="layout-master-detail">
         <div>
           <div className="form-group">
             <label className="form-label">Select Station</label>
@@ -112,7 +112,7 @@ export default function BookAppointment() {
           </button>
         </div>
 
-        <div>
+        <div style={{ position: 'sticky', top: 18, paddingTop: 20 }}>
           <div className="card">
             <div className="card-header"><span className="card-title">Station Info</span></div>
             <div className="card-body" style={{ fontSize: 12 }}>

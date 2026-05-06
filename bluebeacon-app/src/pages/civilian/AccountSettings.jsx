@@ -13,7 +13,7 @@ export default function AccountSettings() {
 
       {saved && <div className="alert alert-su" style={{ marginBottom: 16 }}><div className="alert-icon">✓</div>Settings saved successfully.</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 20 }}>
+      <div className="layout-settings">
         {/* Section nav */}
         <div>
           {['Profile', 'Security', 'Notifications', 'Privacy', 'Linked Vehicles'].map((s, i) => (

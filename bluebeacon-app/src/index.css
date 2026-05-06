@@ -65,6 +65,7 @@ body {
 .btn { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:5px; font-size:12px; font-weight:500; cursor:pointer; border:none; font-family:'IBM Plex Sans',sans-serif; white-space:nowrap; transition:opacity .15s,filter .15s; text-decoration:none; }
 .btn:hover { filter:brightness(1.1); }
 .btn:active { filter:brightness(.95); }
+.btn:disabled { opacity:.4; cursor:not-allowed; filter:none; }
 .btn-sm { padding:3px 8px; font-size:11px; }
 .btn-lg { padding:9px 18px; font-size:13px; }
 .btn-primary   { background:var(--bl); color:white; }
@@ -192,7 +193,7 @@ body {
 .cell-status { font-size:8px; color:var(--txd); }
 
 /* Page */
-.page-wrap { max-width:1400px; margin:0 auto; padding:18px; }
+.page-wrap { max-width:1400px; margin:0 auto; padding:18px 9px; }
 .page-intro { background:linear-gradient(135deg,var(--s2),var(--s1)); border:1px solid var(--bd); border-radius:10px; padding:16px 20px; margin-bottom:18px; position:relative; overflow:hidden; }
 .page-intro::after { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle,rgba(59,130,246,.07),transparent 70%); pointer-events:none; }
 .page-tag { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--blb); margin-bottom:4px; }
@@ -212,3 +213,58 @@ body {
 .sig-pad { height:72px; background:var(--s3); border:1px dashed var(--bdb); border-radius:5px; position:relative; overflow:hidden; }
 .sig-line { position:absolute; bottom:20px; left:14px; right:14px; height:1px; background:var(--bdb); }
 .sig-text { position:absolute; bottom:21px; left:18px; font-family:'Georgia',serif; font-size:22px; color:rgba(59,130,246,.3); transform:rotate(-5deg); }
+
+/* Toggle switch */
+.toggle { width:32px; height:18px; border-radius:9px; background:var(--s3); border:1px solid var(--bd); position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; }
+.toggle.on { background:var(--bl); border-color:var(--bl); }
+.toggle-knob { position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:var(--txd); transition:left .2s,background .2s; }
+.toggle.on .toggle-knob { left:16px; background:white; }
+
+/* ─── Layout split helpers ─── */
+.layout-split        { display:grid; grid-template-columns:1fr 280px; gap:14px; }
+.layout-split-lg     { display:grid; grid-template-columns:1fr 280px; gap:20px; }
+.layout-split-300    { display:grid; grid-template-columns:1fr 300px; gap:20px; }
+.layout-settings     { display:grid; grid-template-columns:200px 1fr; gap:20px; }
+.layout-master-detail{ display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+
+/* ─── Hamburger / mobile sidebar ─── */
+.nav-hamburger { display:none; align-items:center; background:none; border:none; color:var(--txm); font-size:18px; cursor:pointer; padding:4px 8px; flex-shrink:0; line-height:1; }
+.sidebar-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.6); z-index:150; }
+
+/* ─── Responsive breakpoints ─── */
+@media (max-width:960px) {
+  .g4 { grid-template-columns:1fr 1fr; }
+  .g3 { grid-template-columns:1fr 1fr; }
+}
+
+@media (max-width:768px) {
+  .nav-hamburger { display:flex; }
+  .layout-split,
+  .layout-split-lg,
+  .layout-split-300,
+  .layout-settings,
+  .layout-master-detail { grid-template-columns:1fr; }
+  .sidebar {
+    position:absolute !important;
+    top:0; left:-210px; bottom:0;
+    z-index:200;
+    transition:left .25s ease;
+    box-shadow:none;
+  }
+  .sidebar.sidebar-open {
+    left:0;
+    box-shadow:6px 0 28px rgba(0,0,0,.65);
+  }
+}
+
+@media (max-width:600px) {
+  .page-wrap { padding:12px 6px; }
+  .g2, .g3, .g4 { grid-template-columns:1fr; }
+  .form-row { flex-direction:column; }
+  .quick-grid { grid-template-columns:repeat(2,1fr); }
+  .cell-grid { grid-template-columns:repeat(3,1fr); }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-wrap .wt { min-width:380px; }
+  .step-tabs { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .step-tabs > div { flex-shrink:0; }
+}

@@ -21,15 +21,15 @@ export default function PayFines() {
         <div className="page-desc">View and pay outstanding traffic fines linked to your ID and vehicle registration.</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
-        <div>
-          {unpaid.length > 0 && (
-            <div className="alert alert-wa" style={{ marginBottom: 14 }}>
-              <div className="alert-icon">!</div>
-              You have {unpaid.length} outstanding fine{unpaid.length > 1 ? 's' : ''} — Total owed: <strong className="mono">R{totalOwed.toLocaleString()}</strong>
-            </div>
-          )}
+      {unpaid.length > 0 && (
+        <div className="alert alert-wa" style={{ marginBottom: 14 }}>
+          <div className="alert-icon">!</div>
+          You have {unpaid.length} outstanding fine{unpaid.length > 1 ? 's' : ''} — Total owed: <strong className="mono">R{totalOwed.toLocaleString()}</strong>
+        </div>
+      )}
 
+      <div className="layout-master-detail">
+        <div>
           <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>All Fines</div>
           {FINES.map(fine => {
             const isPaid = paid.includes(fine.ref) || fine.status === 'Paid';
@@ -56,7 +56,7 @@ export default function PayFines() {
         </div>
 
         {/* Payment panel */}
-        <div>
+        <div style={{ position: 'sticky', top: 18, paddingTop: 30 }}>
           {selected ? (
             <div className="card">
               <div className="card-header"><span className="card-title">Pay Fine</span></div>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useApp } from '../../context/AppContext';
@@ -11,6 +12,7 @@ const ROLE_COLORS = {
 export default function Layout() {
   const { role } = useApp();
   const accentColor = ROLE_COLORS[role] || 'var(--blb)';
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -26,6 +28,11 @@ export default function Layout() {
         flexShrink: 0,
         zIndex: 100,
       }}>
+        {/* Hamburger — visible on mobile via CSS */}
+        <button className="nav-hamburger" onClick={() => setMenuOpen(o => !o)}>
+          {menuOpen ? '✕' : '☰'}
+        </button>
+
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 16, borderRight: '1px solid var(--bd)' }}>
           <div style={{
@@ -56,8 +63,12 @@ export default function Layout() {
       </nav>
 
       {/* Body */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar />
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {/* Backdrop — mobile only */}
+        {menuOpen && (
+          <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />
+        )}
+        <Sidebar menuOpen={menuOpen} onClose={() => setMenuOpen(false)} />
         <main style={{ flex: 1, overflowY: 'auto', background: 'var(--bg)' }}>
           <Outlet />
         </main>

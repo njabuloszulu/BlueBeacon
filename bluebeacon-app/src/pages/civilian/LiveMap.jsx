@@ -39,7 +39,7 @@ export default function LiveMap() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14 }}>
+      <div className="layout-split">
         {/* Map */}
         <div className="map-box" style={{ height: 460 }}>
           <div className="map-grid" />

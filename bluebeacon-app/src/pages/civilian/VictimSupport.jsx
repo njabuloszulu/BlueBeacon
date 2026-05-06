@@ -1,8 +1,8 @@
-export default function VictimSupport() {
+﻿export default function VictimSupport() {
   return (
     <div className="page-wrap">
       <div className="page-intro">
-        <div className="page-tag">Civilian · Victim Support</div>
+        <div className="page-tag">Civilian Â· Victim Support</div>
         <div className="page-title">Victim Support & Resources</div>
         <div className="page-desc">Confidential support services, crisis hotlines and resources for crime victims and survivors.</div>
       </div>
@@ -16,18 +16,18 @@ export default function VictimSupport() {
       <div className="section-label">Emergency & Crisis Lines</div>
       <div className="g3" style={{ marginBottom: 20 }}>
         {[
-          { icon: '🚨', label: 'SAPS Emergency', number: '10111', color: 'var(--rd)', bg: 'rgba(239,68,68,.07)' },
-          { icon: '❤', label: 'GBV Command Centre', number: '0800 428 428', color: 'var(--pu)', bg: 'rgba(139,92,246,.07)' },
-          { icon: '🌐', label: 'SAPS Careline', number: '0800 333 177', color: 'var(--bl)', bg: 'rgba(59,130,246,.07)' },
-          { icon: '👶', label: 'Child Line SA', number: '0800 055 555', color: 'var(--gn)', bg: 'rgba(16,185,129,.07)' },
-          { icon: '💬', label: 'SADAG Helpline', number: '0800 567 567', color: 'var(--am)', bg: 'rgba(245,158,11,.07)' },
-          { icon: '🏠', label: 'Lifeline SA', number: '0861 322 322', color: 'var(--gnb)', bg: 'rgba(52,211,153,.07)' },
+          { icon: 'ðŸš¨', label: 'SAPS Emergency', number: '10111', color: 'var(--rd)', bg: 'rgba(239,68,68,.07)' },
+          { icon: 'â¤', label: 'GBV Command Centre', number: '0800 428 428', color: 'var(--pu)', bg: 'rgba(139,92,246,.07)' },
+          { icon: 'ðŸŒ', label: 'SAPS Careline', number: '0800 333 177', color: 'var(--bl)', bg: 'rgba(59,130,246,.07)' },
+          { icon: 'ðŸ‘¶', label: 'Child Line SA', number: '0800 055 555', color: 'var(--gn)', bg: 'rgba(16,185,129,.07)' },
+          { icon: 'ðŸ’¬', label: 'SADAG Helpline', number: '0800 567 567', color: 'var(--am)', bg: 'rgba(245,158,11,.07)' },
+          { icon: 'ðŸ ', label: 'Lifeline SA', number: '0861 322 322', color: 'var(--gnb)', bg: 'rgba(52,211,153,.07)' },
         ].map(c => (
           <div key={c.label} style={{ background: c.bg, border: `1px solid ${c.color}33`, borderRadius: 9, padding: 16 }}>
             <div style={{ fontSize: 24, marginBottom: 8 }}>{c.icon}</div>
             <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{c.label}</div>
             <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: c.color }}>{c.number}</div>
-            <div style={{ fontSize: 10, color: 'var(--txd)', marginTop: 4 }}>Free · 24/7 · Confidential</div>
+            <div style={{ fontSize: 10, color: 'var(--txd)', marginTop: 4 }}>Free Â· 24/7 Â· Confidential</div>
           </div>
         ))}
       </div>
@@ -61,11 +61,11 @@ export default function VictimSupport() {
               <select className="form-select"><option>Phone call</option><option>SMS</option><option>Email</option><option>In-person visit</option></select>
             </div>
             <div className="form-group"><label className="form-label">Best Time to Contact</label>
-              <select className="form-select"><option>Morning (8am–12pm)</option><option>Afternoon (12pm–4pm)</option><option>Evening (4pm–7pm)</option><option>Any time</option></select>
+              <select className="form-select"><option>Morning (8amâ€“12pm)</option><option>Afternoon (12pmâ€“4pm)</option><option>Evening (4pmâ€“7pm)</option><option>Any time</option></select>
             </div>
           </div>
           <div className="form-group"><label className="form-label">Brief description (optional)</label>
-            <textarea className="form-textarea" rows={3} placeholder="Briefly describe your situation so we can connect you with the right support…" />
+            <textarea className="form-textarea" rows={3} placeholder="Briefly describe your situation so we can connect you with the right supportâ€¦" />
           </div>
           <button className="btn btn-primary">Request Support Officer</button>
         </div>

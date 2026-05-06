@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ClearanceCert() {
   const [step, setStep] = useState('form'); // 'form' | 'submitted' | 'ready'
+  const [purpose, setPurpose] = useState('Employment');
+  const [uploadedDocs, setUploadedDocs] = useState({ 'Certified copy of ID': 'id_copy.pdf' });
+  const docRefs = useRef({});
 
   if (step === 'submitted') return (
     <div className="page-wrap">
@@ -46,7 +49,7 @@ export default function ClearanceCert() {
         <div className="page-desc">Apply online for your police clearance certificate. Valid for employment, emigration, visa applications and more.</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
+      <div className="layout-split-lg">
         <div>
           <div className="card" style={{ marginBottom: 14 }}>
             <div className="card-header"><span className="card-title">Applicant Information</span></div>
@@ -74,7 +77,7 @@ export default function ClearanceCert() {
             <div className="card-body">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {['Employment', 'Emigration', 'Visa Application', 'Adoption', 'Volunteer Work', 'Other'].map(p => (
-                  <div key={p} style={{ padding: '6px 12px', background: p === 'Employment' ? 'rgba(59,130,246,.1)' : 'var(--s3)', border: p === 'Employment' ? '1px solid var(--bl)' : '1px solid var(--bd)', borderRadius: 5, fontSize: 11, color: p === 'Employment' ? 'var(--blb)' : 'var(--txm)', cursor: 'pointer' }}>{p}</div>
+                  <div key={p} onClick={() => setPurpose(p)} style={{ padding: '6px 12px', background: purpose === p ? 'rgba(59,130,246,.1)' : 'var(--s3)', border: purpose === p ? '1px solid var(--bl)' : '1px solid var(--bd)', borderRadius: 5, fontSize: 11, color: purpose === p ? 'var(--blb)' : 'var(--txm)', cursor: 'pointer' }}>{p}</div>
                 ))}
               </div>
             </div>
@@ -83,15 +86,30 @@ export default function ClearanceCert() {
           <div className="card" style={{ marginBottom: 14 }}>
             <div className="card-header"><span className="card-title">Supporting Documents</span></div>
             <div className="card-body">
-              {[
-                { label: 'Certified copy of ID', status: 'uploaded', icon: '✅' },
-                { label: 'Proof of address (< 3 months)', status: 'upload', icon: '📎' },
-                { label: 'Application fee receipt', status: 'upload', icon: '📎' },
-              ].map(d => (
-                <div key={d.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(36,48,74,.3)' }}>
-                  <span style={{ fontSize: 16 }}>{d.icon}</span>
-                  <span style={{ flex: 1, fontSize: 12 }}>{d.label}</span>
-                  {d.status === 'uploaded' ? <span className="b b-act">Uploaded</span> : <button className="btn btn-secondary btn-sm">Upload</button>}
+              {['Certified copy of ID', 'Proof of address (< 3 months)', 'Application fee receipt'].map(label => (
+                <div key={label}>
+                  <input
+                    ref={el => docRefs.current[label] = el}
+                    type="file"
+                    accept="*/*"
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      if (e.target.files[0]) setUploadedDocs(prev => ({ ...prev, [label]: e.target.files[0].name }));
+                    }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(36,48,74,.3)' }}>
+                    <span style={{ fontSize: 16 }}>{uploadedDocs[label] ? '✅' : '📎'}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12 }}>{label}</div>
+                      {uploadedDocs[label] && (
+                        <div style={{ fontSize: 10, color: 'var(--txd)', marginTop: 2, fontFamily: "'IBM Plex Mono',monospace" }}>{uploadedDocs[label]}</div>
+                      )}
+                    </div>
+                    {uploadedDocs[label]
+                      ? <button className="btn btn-secondary btn-sm" onClick={() => { setUploadedDocs(prev => { const n = {...prev}; delete n[label]; return n; }); }}>Remove</button>
+                      : <button className="btn btn-secondary btn-sm" onClick={() => docRefs.current[label]?.click()}>Upload</button>
+                    }
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,5 +1,13 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const fileIcon = (file) => {
+  if (file.type.startsWith('image/')) return '🖼';
+  if (file.type.startsWith('video/')) return '📹';
+  if (file.type.startsWith('audio/')) return '🎵';
+  if (file.type === 'application/pdf') return '📄';
+  return '📎';
+};
 
 const INCIDENT_TYPES = [
   { icon: '🔪', label: 'Assault / GBH', color: 'rgba(239,68,68,.1)', border: 'rgba(239,68,68,.4)', textColor: 'var(--rdb)' },
@@ -10,7 +18,6 @@ const INCIDENT_TYPES = [
   { icon: '👁️', label: 'Missing Person' },
   { icon: '💊', label: 'Drug Activity' },
   { icon: '📢', label: 'Noise / Nuisance' },
-  { icon: '⋯', label: 'Other' },
 ];
 
 const STEPS = ['Type', 'Urgency', 'Describe', 'Location', 'Media', 'Review'];
@@ -18,14 +25,21 @@ const STEPS = ['Type', 'Urgency', 'Describe', 'Location', 'Media', 'Review'];
 export default function ReportIncident() {
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState(null);
+  const [otherText, setOtherText] = useState('');
   const [urgency, setUrgency] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
+  const mediaInputRef = useRef(null);
+
+  const addFiles = (incoming) => {
+    setMediaFiles(prev => [...prev, ...Array.from(incoming)]);
+  };
 
   if (submitted) {
     return (
       <div className="page-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
-        <div style={{ textAlign: 'center', maxWidth: 420 }}>
+        <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
           <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Report Submitted!</div>
           <div style={{ fontSize: 13, color: 'var(--txm)', marginBottom: 6 }}>Your incident has been recorded.</div>
@@ -51,7 +65,7 @@ export default function ReportIncident() {
       </div>
 
       {/* Step indicator */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--bd)', marginBottom: 20 }}>
+      <div className="step-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--bd)', marginBottom: 20 }}>
         {STEPS.map((s, i) => (
           <div key={s} style={{
             padding: '8px 14px',
@@ -68,34 +82,70 @@ export default function ReportIncident() {
 
       {/* Step 0 — Incident Type */}
       {step === 0 && (
-        <div style={{ maxWidth: 560 }}>
+        <div>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>What happened?</div>
           <div style={{ fontSize: 12, color: 'var(--txm)', marginBottom: 16 }}>Select the category that best describes your situation</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10, marginBottom: 10 }}>
             {INCIDENT_TYPES.map(t => (
               <div key={t.label}
                 onClick={() => setSelected(t.label)}
                 style={{
-                  padding: '12px 8px',
+                  padding: '20px 12px',
                   background: selected === t.label ? (t.color || 'rgba(59,130,246,.1)') : 'var(--s3)',
                   border: selected === t.label ? `2px solid ${t.border || 'rgba(59,130,246,.4)'}` : '1px solid var(--bd)',
-                  borderRadius: 7,
+                  borderRadius: 8,
                   textAlign: 'center',
                   cursor: 'pointer',
                   transition: 'all .15s',
                 }}>
-                <div style={{ fontSize: 20, marginBottom: 5 }}>{t.icon}</div>
-                <div style={{ fontSize: 10, fontWeight: 600, color: selected === t.label ? (t.textColor || 'var(--blb)') : 'var(--txm)' }}>{t.label}</div>
+                <div style={{ fontSize: 26, marginBottom: 8 }}>{t.icon}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: selected === t.label ? (t.textColor || 'var(--blb)') : 'var(--txm)' }}>{t.label}</div>
               </div>
             ))}
           </div>
+
+          {/* Other — full-width textarea card */}
+          <div
+            onClick={() => setSelected('Other')}
+            style={{
+              padding: '14px 16px',
+              background: selected === 'Other' ? 'rgba(59,130,246,.08)' : 'var(--s3)',
+              border: selected === 'Other' ? '2px solid rgba(59,130,246,.4)' : '1px solid var(--bd)',
+              borderRadius: 8,
+              cursor: 'text',
+              transition: 'all .15s',
+              marginBottom: 16,
+            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: selected === 'Other' ? 10 : 0 }}>
+              <span style={{ fontSize: 18 }}>⋯</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: selected === 'Other' ? 'var(--blb)' : 'var(--txm)' }}>Other — describe your incident type</span>
+            </div>
+            {selected === 'Other' && (
+              <textarea
+                autoFocus
+                className="form-textarea"
+                rows={3}
+                placeholder="Briefly describe what happened, e.g. 'Illegal dumping near my property'…"
+                value={otherText}
+                onClick={e => e.stopPropagation()}
+                onChange={e => setOtherText(e.target.value)}
+                style={{ marginBottom: 0 }}
+              />
+            )}
+          </div>
+
           {selected && (
             <div className="alert alert-wa" style={{ marginBottom: 12 }}>
               <div className="alert-icon">!</div>
-              Selected: <strong>{selected}</strong> — If in immediate danger, use SOS button.
+              Selected: <strong>{selected === 'Other' ? (otherText.trim() || 'Other') : selected}</strong> — If in immediate danger, use SOS button.
             </div>
           )}
-          <button className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} disabled={!selected} onClick={() => selected && setStep(1)}>
+          <button
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', justifyContent: 'center' }}
+            disabled={!selected || (selected === 'Other' && !otherText.trim())}
+            onClick={() => selected && (selected !== 'Other' || otherText.trim()) && setStep(1)}
+          >
             Continue to Urgency →
           </button>
         </div>
@@ -103,7 +153,7 @@ export default function ReportIncident() {
 
       {/* Step 1 — Urgency */}
       {step === 1 && (
-        <div style={{ maxWidth: 560 }}>
+        <div style={{}}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>How urgent is this?</div>
           <div style={{ fontSize: 12, color: 'var(--txm)', marginBottom: 16 }}>This helps dispatch prioritise your report</div>
           {[
@@ -131,16 +181,16 @@ export default function ReportIncident() {
               </div>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-            <button className="btn btn-secondary" onClick={() => setStep(0)}>← Back</button>
-            <button className="btn btn-primary" disabled={!urgency} onClick={() => urgency && setStep(2)}>Next: Describe →</button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+            <button className="btn btn-secondary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(0)}>← Back</button>
+            <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} disabled={!urgency} onClick={() => urgency && setStep(2)}>Next: Describe →</button>
           </div>
         </div>
       )}
 
       {/* Step 2 — Describe */}
       {step === 2 && (
-        <div style={{ maxWidth: 560 }}>
+        <div style={{}}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Describe the incident</div>
           <div className="form-row">
             <div className="form-group">
@@ -156,15 +206,13 @@ export default function ReportIncident() {
             <label className="form-label">What happened? (Describe in detail)</label>
             <textarea className="form-textarea" rows={4} placeholder="Describe the incident clearly, including sequence of events…" />
           </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Suspect 1 — Description</label>
-              <input className="form-input" placeholder="Height, clothing, features…" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Suspect 2 (optional)</label>
-              <input className="form-input" placeholder="Optional…" />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Suspect 1 — Description</label>
+            <textarea className="form-textarea" rows={3} placeholder="e.g. Male, approx. 1.8m, slim build, wearing black hoodie and blue jeans, short hair…" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Suspect 2 — Description (optional)</label>
+            <textarea className="form-textarea" rows={3} placeholder="Leave blank if only one suspect…" />
           </div>
           <div className="form-group">
             <label className="form-label">Were there witnesses?</label>
@@ -174,17 +222,19 @@ export default function ReportIncident() {
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
-            <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
-            <span style={{ fontSize: 10, color: 'var(--gn)' }}>✓ Auto-saved</span>
-            <button className="btn btn-primary" onClick={() => setStep(3)}>Next: Location →</button>
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 10, color: 'var(--gn)', textAlign: 'center', marginBottom: 8 }}>✓ Auto-saved</div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn btn-secondary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(1)}>← Back</button>
+              <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(3)}>Next: Location →</button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Step 3 — Location */}
       {step === 3 && (
-        <div style={{ maxWidth: 560 }}>
+        <div style={{}}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Where did it happen?</div>
           <div style={{ fontSize: 12, color: 'var(--txd)', marginBottom: 12 }}>Drag the pin or type an address</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -214,38 +264,57 @@ export default function ReportIncident() {
               <input className="form-input" defaultValue="Cape Town CBD" />
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(2)}>← Back</button>
-            <button className="btn btn-primary" onClick={() => setStep(4)}>Next: Upload Media →</button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-secondary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(2)}>← Back</button>
+            <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(4)}>Next: Upload Media →</button>
           </div>
         </div>
       )}
 
       {/* Step 4 — Media */}
       {step === 4 && (
-        <div style={{ maxWidth: 560 }}>
+        <div style={{}}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Upload Evidence</div>
           <div style={{ fontSize: 12, color: 'var(--txd)', marginBottom: 16 }}>Photos, videos, audio or documents (optional but helpful)</div>
-          <div style={{ border: '2px dashed var(--bdb)', borderRadius: 8, padding: 32, textAlign: 'center', cursor: 'pointer', marginBottom: 12 }}>
+          <input
+            ref={mediaInputRef}
+            type="file"
+            multiple
+            accept="*/*"
+            style={{ display: 'none' }}
+            onChange={e => addFiles(e.target.files)}
+          />
+          <div
+            onClick={() => mediaInputRef.current.click()}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
+            style={{ border: `2px dashed ${mediaFiles.length ? 'var(--bl)' : 'var(--bdb)'}`, borderRadius: 8, padding: 32, textAlign: 'center', cursor: 'pointer', marginBottom: 12, background: mediaFiles.length ? 'rgba(59,130,246,.03)' : 'transparent', transition: 'all .15s' }}
+          >
             <div style={{ fontSize: 28, marginBottom: 8 }}>📎</div>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Drag files here or click to browse</div>
-            <div style={{ fontSize: 11, color: 'var(--txd)' }}>JPG, PNG, MP4, MP3, PDF · Max 50MB each</div>
+            <div style={{ fontSize: 11, color: 'var(--txd)' }}>All file types accepted · Max 50MB each</div>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            {['🖼', '📹'].map((icon, i) => (
-              <div key={i} style={{ width: 56, height: 56, background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button className="btn btn-secondary" onClick={() => setStep(3)}>← Back</button>
-            <button className="btn btn-primary" onClick={() => setStep(5)}>Next: Review →</button>
+          {mediaFiles.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {mediaFiles.map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: 'var(--s3)', border: '1px solid var(--bd)', borderRadius: 6 }}>
+                  <span style={{ fontSize: 14 }}>{fileIcon(f)}</span>
+                  <span style={{ fontSize: 11, color: 'var(--txm)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                  <span onClick={e => { e.stopPropagation(); setMediaFiles(prev => prev.filter((_, idx) => idx !== i)); }} style={{ fontSize: 10, color: 'var(--txd)', cursor: 'pointer', marginLeft: 2 }}>✕</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-secondary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(3)}>← Back</button>
+            <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(5)}>Next: Review →</button>
           </div>
         </div>
       )}
 
       {/* Step 5 — Review */}
       {step === 5 && (
-        <div style={{ maxWidth: 560 }}>
+        <div style={{}}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Review Your Report</div>
           <div className="card" style={{ marginBottom: 12 }}>
             <div className="card-header"><span className="card-title">Incident Details</span><span className="card-action">Edit</span></div>
@@ -281,10 +350,8 @@ export default function ReportIncident() {
             ☑ I confirm this information is accurate and I understand making a false report is a criminal offence under Section 319 of the Criminal Procedure Act.
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-secondary" onClick={() => setStep(4)}>← Back</button>
-            <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setSubmitted(true)}>
-              Submit Report
-            </button>
+            <button className="btn btn-secondary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setStep(4)}>← Back</button>
+            <button className="btn btn-primary btn-lg" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setSubmitted(true)}>Submit Report</button>
           </div>
         </div>
       )}

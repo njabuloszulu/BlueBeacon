@@ -20,7 +20,7 @@ export default function CivilianDashboard() {
       </div>
 
       {/* Alert banner */}
-      <div className="alert alert-em" style={{ marginBottom: 16 }}>
+      <div className="alert alert-em" style={{ marginBottom: 16, cursor: 'pointer' }} onClick={() => navigate('/civilian/alerts')}>
         <div className="alert-icon">!</div>
         Active robbery alert 800m away — Greenpoint, armed suspect
       </div>
@@ -50,7 +50,7 @@ export default function CivilianDashboard() {
             <span className="card-title">My Active Reports</span>
             <span className="card-action" onClick={() => navigate('/civilian/my-reports')}>All →</span>
           </div>
-          <div className="card-body" style={{ padding: 0 }}>
+          <div className="card-body table-wrap" style={{ padding: 0 }}>
             <table className="wt">
               <thead><tr><th>Ref #</th><th>Type</th><th>Status</th><th>Age</th></tr></thead>
               <tbody>
@@ -80,7 +80,7 @@ export default function CivilianDashboard() {
         <div className="card">
           <div className="card-header">
             <span className="card-title">Area Notifications</span>
-            <span className="card-action">Settings</span>
+            <span className="card-action" onClick={() => navigate('/civilian/alerts')}>View all →</span>
           </div>
           <div className="card-body">
             {[
@@ -89,7 +89,7 @@ export default function CivilianDashboard() {
               { dot: 'var(--bl)', title: 'ℹ️ Report #4821 updated', sub: 'Officer assigned', time: '3h' },
               { dot: 'var(--gn)', title: '✅ Station open — Woodstock', sub: 'Normal operating hours', time: '5h' },
             ].map((n, i) => (
-              <div key={i} className="notif-item">
+              <div key={i} className="notif-item" style={{ cursor: 'pointer' }} onClick={() => navigate('/civilian/alerts')}>
                 <div className="notif-dot" style={{ background: n.dot }} />
                 <div style={{ flex: 1 }}>
                   <div className="notif-title">{n.title}</div>

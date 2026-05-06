@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const REPORTS = [
   {
@@ -25,6 +26,7 @@ const REPORTS = [
 ];
 
 export default function MyReports() {
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(REPORTS[0]);
   const [filter, setFilter] = useState('All');
 
@@ -38,26 +40,28 @@ export default function MyReports() {
         <div className="page-desc">All submitted reports with status, assigned officer and progress. Click any report to view full case timeline.</div>
       </div>
 
-      <div className="g2" style={{ alignItems: 'start' }}>
+      {/* Header + filters above the grid */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ flex: 1, fontWeight: 700, fontSize: 14 }}>My Reports</div>
+        <div style={{ display: 'flex', gap: 6, marginRight: 12 }}>
+          {['All (3)', 'Open (2)', 'Closed (1)'].map(f => {
+            const key = f.split(' ')[0];
+            return (
+              <div key={key} onClick={() => setFilter(key)} style={{
+                padding: '3px 10px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
+                background: filter === key ? 'rgba(59,130,246,.1)' : 'var(--s3)',
+                border: filter === key ? '1px solid var(--bl)' : '1px solid var(--bd)',
+                color: filter === key ? 'var(--blb)' : 'var(--txd)',
+              }}>{f}</div>
+            );
+          })}
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={() => navigate('/civilian/report')}>+ New Report</button>
+      </div>
+
+      <div className="layout-master-detail">
         {/* List */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ flex: 1, fontWeight: 700, fontSize: 14 }}>My Reports</div>
-            <button className="btn btn-primary btn-sm">+ New Report</button>
-          </div>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-            {['All (3)', 'Open (2)', 'Closed (1)'].map(f => {
-              const key = f.split(' ')[0];
-              return (
-                <div key={key} onClick={() => setFilter(key)} style={{
-                  padding: '3px 10px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
-                  background: filter === key ? 'rgba(59,130,246,.1)' : 'var(--s3)',
-                  border: filter === key ? '1px solid var(--bl)' : '1px solid var(--bd)',
-                  color: filter === key ? 'var(--blb)' : 'var(--txd)',
-                }}>{f}</div>
-              );
-            })}
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map(r => (
               <div key={r.id} onClick={() => setSelected(r)} style={{
@@ -84,7 +88,7 @@ export default function MyReports() {
 
         {/* Detail */}
         {selected && (
-          <div className="card">
+          <div className="card" style={{ position: 'sticky', top: 18 }}>
             <div className="card-header">
               <div>
                 <div className="mono" style={{ fontSize: 10, color: 'var(--txd)' }}>{selected.id}</div>
