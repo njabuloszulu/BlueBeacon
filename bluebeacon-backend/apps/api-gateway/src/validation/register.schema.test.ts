@@ -6,7 +6,6 @@ const validPayload = {
   email: 'wonganiskosana@gmail.com',
   password: 'P@ssw0rd',
   role: 'civilian',
-  stationId: '1',
   idNumber: '0007216162086',
   phone: '0656183117'
 } as const;
@@ -78,6 +77,11 @@ describe('registerSchema', () => {
     it('rejects number with invalid prefix', () => {
       const result = registerSchema.safeParse({ ...validPayload, phone: '0956183117' });
       expect(result.success).toBe(false);
+    });
+
+    it('accepts +27 mobile format', () => {
+      const result = registerSchema.safeParse({ ...validPayload, phone: '+27656183117' });
+      expect(result.success).toBe(true);
     });
   });
 });

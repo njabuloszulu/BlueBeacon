@@ -20,7 +20,9 @@ export function authenticateJwt(req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const claims = jwt.verify(token, process.env.JWT_PUBLIC_KEY ?? 'dev-public') as JwtClaims;
+    const secret =
+      process.env.JWT_PRIVATE_KEY ?? process.env.JWT_PUBLIC_KEY ?? 'dev-private';
+    const claims = jwt.verify(token, secret) as JwtClaims;
     req.auth = claims;
     next();
   } catch {

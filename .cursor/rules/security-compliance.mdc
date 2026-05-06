@@ -1,0 +1,15 @@
+---
+description: "Security & compliance rules"
+globs:
+  - "services/**/*.ts"
+  - "services/**/*.py"
+---
+
+# Security & Compliance Rules
+
+- Encrypt all data at rest (AES-256) and in transit (TLS 1.3).
+- Validate and sanitise all inputs server-side.
+- Lock accounts after 5 failed login attempts.
+- Scan uploaded files with ClamAV; restrict file types.
+- Align with POPIA (South Africa) and GDPR (EU).
+- Judges' digital signatures must meet legal standards for electronic evidence.

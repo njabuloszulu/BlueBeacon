@@ -1,140 +1,102 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import ClearanceCertificateForm from '../../components/civilian/ClearanceCertificateForm';
+import { useSubmitClearance } from '../../hooks/useCivilianApi';
+import toast from 'react-hot-toast';
 
 export default function ClearanceCert() {
-  const [step, setStep] = useState('form'); // 'form' | 'submitted' | 'ready'
-  const [purpose, setPurpose] = useState('Employment');
-  const [uploadedDocs, setUploadedDocs] = useState({ 'Certified copy of ID': 'id_copy.pdf' });
-  const docRefs = useRef({});
+  const [step, setStep] = useState('form');
+  const { submitClearance } = useSubmitClearance();
 
-  if (step === 'submitted') return (
-    <div className="page-wrap">
-      <div className="page-intro">
-        <div className="page-tag">Civilian · Clearance Certificate</div>
-        <div className="page-title">Application Submitted</div>
-      </div>
-      <div style={{ maxWidth: 500 }}>
-        <div className="alert alert-su" style={{ marginBottom: 16 }}>
-          <div className="alert-icon">✓</div>
-          Application REF-CLR-0419 received. Processing time: 5–10 working days.
+  async function handleSubmit(form) {
+    const { paymentUrl, id } = await submitClearance({
+      subjectId: form.fullName,
+      amount: form.amount,
+      purpose: form.purpose,
+      payload: {
+        fullName: form.fullName,
+        idNumber: form.idNumber,
+        dob: form.dob,
+        gender: form.gender,
+        phone: form.phone,
+        email: form.email,
+        address: form.address,
+        supportingDocs: form.supportingDocs,
+      },
+    });
+    if (paymentUrl) {
+      toast.success('Redirecting to PayFast…');
+      window.location.href = paymentUrl;
+      return;
+    }
+    toast.success(`Application recorded (${id})`);
+    setStep('submitted');
+  }
+
+  if (step === 'submitted') {
+    return (
+      <div className="page-wrap">
+        <div className="page-intro">
+          <div className="page-tag">Civilian · Clearance Certificate</div>
+          <div className="page-title">Application Submitted</div>
         </div>
-        <div className="card">
-          <div className="card-header"><span className="card-title">Application Status</span></div>
-          <div className="card-body">
-            <div className="timeline">
-              {[
-                { label: 'Application submitted', time: '13 Apr 2026 · 10:15', state: 'done' },
-                { label: 'Identity verification', time: 'In progress', state: 'current' },
-                { label: 'Criminal record check', time: 'Pending', state: 'todo' },
-                { label: 'Certificate generated', time: 'Pending', state: 'todo' },
-                { label: 'Available for download', time: 'Pending', state: 'todo' },
-              ].map((t, i) => (
-                <div key={i} className="tl-item">
-                  <div className={`tl-dot ${t.state}`}>{t.state === 'done' ? '✓' : t.state === 'current' ? '●' : '○'}</div>
-                  <div><div className="tl-title">{t.label}</div><div className="tl-meta">{t.time}</div></div>
-                </div>
-              ))}
-            </div>
+        <div style={{ maxWidth: 500 }}>
+          <div className="alert alert-su" style={{ marginBottom: 16 }}>
+            <div className="alert-icon">✓</div>
+            Application received. Processing time: 5–10 working days after payment clears.
           </div>
+          <button type="button" className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => setStep('form')}>
+            New Application
+          </button>
         </div>
-        <button className="btn btn-secondary" style={{ marginTop: 12 }} onClick={() => setStep('form')}>New Application</button>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="page-wrap">
       <div className="page-intro">
         <div className="page-tag">Civilian · Clearance Certificate</div>
         <div className="page-title">Police Clearance Certificate</div>
-        <div className="page-desc">Apply online for your police clearance certificate. Valid for employment, emigration, visa applications and more.</div>
+        <div className="page-desc">POST /document/documents/clearance then PayFast sandbox checkout.</div>
       </div>
 
       <div className="layout-split-lg">
         <div>
-          <div className="card" style={{ marginBottom: 14 }}>
-            <div className="card-header"><span className="card-title">Applicant Information</span></div>
-            <div className="card-body">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Full Name (as per ID)</label><input className="form-input" defaultValue="Thabo Mokoena" /></div>
-                <div className="form-group"><label className="form-label">ID Number</label><input className="form-input mono" defaultValue="9501015082084" /></div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Date of Birth</label><input className="form-input mono" defaultValue="1995-01-01" /></div>
-                <div className="form-group"><label className="form-label">Gender</label>
-                  <select className="form-select"><option>Male</option><option>Female</option><option>Non-binary</option></select>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Contact Number</label><input className="form-input mono" defaultValue="082 555 0123" /></div>
-                <div className="form-group"><label className="form-label">Email Address</label><input className="form-input" defaultValue="thabo@example.com" /></div>
-              </div>
-              <div className="form-group"><label className="form-label">Residential Address</label><input className="form-input" defaultValue="12 Bree Street, Cape Town CBD, 8001" /></div>
-            </div>
-          </div>
-
-          <div className="card" style={{ marginBottom: 14 }}>
-            <div className="card-header"><span className="card-title">Purpose of Application</span></div>
-            <div className="card-body">
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {['Employment', 'Emigration', 'Visa Application', 'Adoption', 'Volunteer Work', 'Other'].map(p => (
-                  <div key={p} onClick={() => setPurpose(p)} style={{ padding: '6px 12px', background: purpose === p ? 'rgba(59,130,246,.1)' : 'var(--s3)', border: purpose === p ? '1px solid var(--bl)' : '1px solid var(--bd)', borderRadius: 5, fontSize: 11, color: purpose === p ? 'var(--blb)' : 'var(--txm)', cursor: 'pointer' }}>{p}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="card" style={{ marginBottom: 14 }}>
-            <div className="card-header"><span className="card-title">Supporting Documents</span></div>
-            <div className="card-body">
-              {['Certified copy of ID', 'Proof of address (< 3 months)', 'Application fee receipt'].map(label => (
-                <div key={label}>
-                  <input
-                    ref={el => docRefs.current[label] = el}
-                    type="file"
-                    accept="*/*"
-                    style={{ display: 'none' }}
-                    onChange={e => {
-                      if (e.target.files[0]) setUploadedDocs(prev => ({ ...prev, [label]: e.target.files[0].name }));
-                    }}
-                  />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(36,48,74,.3)' }}>
-                    <span style={{ fontSize: 16 }}>{uploadedDocs[label] ? '✅' : '📎'}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12 }}>{label}</div>
-                      {uploadedDocs[label] && (
-                        <div style={{ fontSize: 10, color: 'var(--txd)', marginTop: 2, fontFamily: "'IBM Plex Mono',monospace" }}>{uploadedDocs[label]}</div>
-                      )}
-                    </div>
-                    {uploadedDocs[label]
-                      ? <button className="btn btn-secondary btn-sm" onClick={() => { setUploadedDocs(prev => { const n = {...prev}; delete n[label]; return n; }); }}>Remove</button>
-                      : <button className="btn btn-secondary btn-sm" onClick={() => docRefs.current[label]?.click()}>Upload</button>
-                    }
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <button className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setStep('submitted')}>
-            Submit Application — R140.00
-          </button>
+          <ClearanceCertificateForm onSubmitSuccess={handleSubmit} />
         </div>
-
-        {/* Info panel */}
         <div>
           <div className="card" style={{ marginBottom: 12 }}>
-            <div className="card-header"><span className="card-title">Fee Structure</span></div>
+            <div className="card-header">
+              <span className="card-title">Fee Structure</span>
+            </div>
             <div className="card-body" style={{ fontSize: 12 }}>
-              {[['Standard (10 days)', 'R140.00'], ['Express (3 days)', 'R300.00'], ['Urgent (24hr)', 'R500.00']].map(([l, p]) => (
-                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(36,48,74,.3)' }}>
-                  <span>{l}</span><span className="mono" style={{ color: 'var(--am)' }}>{p}</span>
+              {[
+                ['Standard (10 days)', 'R140.00'],
+                ['Express (3 days)', 'R300.00'],
+                ['Urgent (24hr)', 'R500.00'],
+              ].map(([l, p]) => (
+                <div
+                  key={l}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '6px 0',
+                    borderBottom: '1px solid rgba(36,48,74,.3)',
+                  }}
+                >
+                  <span>{l}</span>
+                  <span className="mono" style={{ color: 'var(--am)' }}>
+                    {p}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
           <div className="alert alert-in">
             <div className="alert-icon">i</div>
-            <div>Valid for <strong>6 months</strong> from date of issue. Must be certified for international use.</div>
+            <div>
+              Valid for <strong>6 months</strong> from date of issue. Must be certified for international use.
+            </div>
           </div>
         </div>
       </div>

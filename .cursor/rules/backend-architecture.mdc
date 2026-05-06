@@ -1,0 +1,14 @@
+---
+description: "Backend service standards"
+globs:
+  - "services/**/*.ts"
+  - "services/**/*.py"
+---
+
+# Backend Architecture Rules
+
+- Use microservices with clear separation: Incident, Case, Arrest, Warrant, Evidence, Dispatch, Map, Notification, Document, Admin.
+- All services must expose REST endpoints with proper HTTP status codes.
+- JWT expiry: 15 minutes; refresh token: 7 days.
+- RBAC middleware required on every protected route.
+- Audit logs must record user ID, timestamp, IP, and before/after state.

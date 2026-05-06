@@ -1,0 +1,13 @@
+---
+description: "Map & alert rules"
+globs:
+  - "src/map/**/*.tsx"
+---
+
+# Map & Alert Rules
+
+- Use Google Maps or Mapbox SDK with government-level API key.
+- Hotspot aggregation cron job must run nightly.
+- Geo-fencing engine must trigger push notifications for civilians inside radius.
+- WebSockets must update map sessions in real time.
+- Officers can create, edit, and expire hotspot zones.

@@ -14,7 +14,12 @@ const disposableDomains = new Set([
 
 const passwordComplexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
-export const registerSchema = z.object({
+const saPhone = z.union([
+  z.string().regex(/^0[678][0-9]{8}$/, 'phone must be a valid South African mobile number'),
+  z.string().regex(/^\+27[6-8][0-9]{8}$/, 'phone must use +27 country code with valid mobile prefix')
+]);
+
+const basePerson = {
   fullName: z
     .string()
     .trim()
@@ -36,17 +41,42 @@ export const registerSchema = z.object({
       passwordComplexityRegex,
       'password must include uppercase, lowercase, number, and special character'
     ),
-  role: z.enum(['civilian', 'officer', 'admin'], {
-    error: 'role must be one of civilian, officer, or admin'
-  }),
-  stationId: z.string().regex(/^\d+$/, 'stationId must be numeric'),
   idNumber: z
     .string()
     .regex(/^\d{13}$/, 'idNumber must be exactly 13 digits')
     .refine((value) => isValidSouthAfricanId(value), 'idNumber must be a valid South African ID number'),
-  phone: z
-    .string()
-    .regex(/^0[678][0-9]{8}$/, 'phone must be a valid South African mobile number')
+  phone: saPhone
+};
+
+const civilianRegister = z.object({
+  ...basePerson,
+  role: z.literal('civilian'),
+  stationId: z.string().regex(/^\d+$/).optional()
 });
+
+const judgeRegister = z.object({
+  ...basePerson,
+  role: z.literal('judge'),
+  stationId: z.string().regex(/^\d+$/).optional()
+});
+
+const officerRegister = z.object({
+  ...basePerson,
+  role: z.literal('officer'),
+  stationId: z.string().regex(/^\d+$/, 'stationId must be numeric')
+});
+
+const adminRegister = z.object({
+  ...basePerson,
+  role: z.literal('admin'),
+  stationId: z.string().regex(/^\d+$/, 'stationId must be numeric')
+});
+
+export const registerSchema = z.discriminatedUnion('role', [
+  civilianRegister,
+  judgeRegister,
+  officerRegister,
+  adminRegister
+]);
 
 export type RegisterInput = z.infer<typeof registerSchema>;

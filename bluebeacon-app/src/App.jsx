@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
+import { useAuth } from './context/AuthContext';
+import CivilianLayout from './components/layout/CivilianLayout';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 
@@ -40,8 +42,8 @@ import CourtOrders from './pages/judge/CourtOrders';
 import Archives from './pages/judge/Archives';
 
 function ProtectedRoute({ children, requiredRole }) {
-  const { role } = useApp();
-  if (!role) return <Navigate to="/" replace />;
+  const { isAuthenticated, role } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   if (requiredRole && role !== requiredRole) return <Navigate to="/" replace />;
   return children;
 }
@@ -51,8 +53,14 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Login />} />
 
-      {/* Civilian routes */}
-      <Route path="/civilian" element={<ProtectedRoute requiredRole="civilian"><Layout /></ProtectedRoute>}>
+      <Route
+        path="/civilian"
+        element={
+          <ProtectedRoute requiredRole="civilian">
+            <CivilianLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="dashboard" element={<CivilianDashboard />} />
         <Route path="report" element={<ReportIncident />} />
         <Route path="my-reports" element={<MyReports />} />
@@ -66,7 +74,6 @@ function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* Officer routes */}
       <Route path="/officer" element={<ProtectedRoute requiredRole="officer"><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<OfficerDashboard />} />
         <Route path="incidents" element={<IncidentQueue />} />
@@ -84,7 +91,6 @@ function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* Judge routes */}
       <Route path="/judge" element={<ProtectedRoute requiredRole="judge"><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<JudgeDashboard />} />
         <Route path="warrants" element={<WarrantInbox />} />
@@ -96,7 +102,6 @@ function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

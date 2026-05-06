@@ -1,0 +1,13 @@
+---
+description: "Frontend UX rules"
+globs:
+  - "src/components/**/*.tsx"
+---
+
+# Frontend UX Rules
+
+- Civilian portal must show: Report Crime, Track My Report, Find Station, Emergency SOS.
+- Officer dashboard must include: incident queue, dispatch board, patrols, cell occupancy.
+- Judge portal must include: warrant inbox, review panel, signature pad.
+- Use role-specific layouts: CivilianLayout, OfficerLayout, JudgeLayout.
+- All map layers must support toggles: Hotspots, Stations, Roadblocks, Alerts, My Reports.

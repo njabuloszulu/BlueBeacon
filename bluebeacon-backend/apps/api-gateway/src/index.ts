@@ -135,16 +135,28 @@ const loginSchema = z.object({
 const auth = express.Router();
 auth.get('/health', (_req, res) => res.json({ service: 'auth-service', status: 'ok' }));
 auth.post('/register', validateBody(registerSchema), async (req, res) => {
-  const { fullName, email, password, role, stationId, idNumber, phone } = req.body;
+  const { fullName, email, password, role, stationId, idNumber, phone } = req.body as {
+    fullName: string;
+    email: string;
+    password: string;
+    role: string;
+    stationId?: string;
+    idNumber: string;
+    phone: string;
+  };
 
-  const stationIssue = await getStationValidationIssue(stationId, (id) =>
-    prisma.station.findUnique({ where: { id }, select: { id: true } })
-  );
-  if (stationIssue) {
-    return res.status(400).json({
-      message: 'Invalid request payload',
-      issues: [stationIssue]
-    });
+  const normalizedPhone = phone.startsWith('+27') ? `0${phone.slice(3)}` : phone;
+
+  if (stationId) {
+    const stationIssue = await getStationValidationIssue(stationId, (id) =>
+      prisma.station.findUnique({ where: { id }, select: { id: true } })
+    );
+    if (stationIssue) {
+      return res.status(400).json({
+        message: 'Invalid request payload',
+        issues: [stationIssue]
+      });
+    }
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -155,7 +167,7 @@ auth.post('/register', validateBody(registerSchema), async (req, res) => {
       fullName,
       email,
       idNumber: idNumber ?? null,
-      phone: phone ?? null,
+      phone: normalizedPhone ?? null,
       role,
       stationId: stationId ?? null,
       isVerified: false,
@@ -275,8 +287,20 @@ function distanceInKm(aLat: number, aLng: number, bLat: number, bLng: number): n
   return earthRadiusKm * (2 * Math.atan2(Math.sqrt(calc), Math.sqrt(1 - calc)));
 }
 incident.get('/health', (_req, res) => res.json({ service: 'incident-service', status: 'ok' }));
+incident.get('/incidents', async (req, res) => {
+  const owner = String(req.query.owner ?? '');
+  if (owner !== 'me') return res.status(400).json({ message: 'Query owner=me is required' });
+  const sub = req.auth?.sub;
+  if (!sub) return res.status(401).json({ message: 'Unauthorized' });
+  const rows = await prisma.incident.findMany({
+    where: { reporterId: sub },
+    orderBy: { createdAt: 'desc' },
+    include: { media: true }
+  });
+  res.json(rows);
+});
 incident.post('/incidents', upload.array('media', 5), async (req, res) => {
-  const reporterId = String(req.body.reporterId ?? '');
+  const reporterId = String(req.auth?.sub ?? req.body.reporterId ?? '');
   const incidentType = String(req.body.incidentType ?? '');
   const description = String(req.body.description ?? '');
   const locationLat = Number(req.body.locationLat ?? 0);
@@ -630,15 +654,73 @@ maps.post('/map/hotspots/aggregate-nightly', async (_req, res) => {
   res.status(202).json({ generated: 1, sample: generated });
 });
 
+const handleSos: express.RequestHandler = async (req, res) => {
+  const userId = String(req.auth?.sub ?? req.body.userId ?? '');
+  const lat = Number(req.body.lat);
+  const lng = Number(req.body.lng);
+  const message = String(req.body.message ?? 'SOS');
+  const payload = { id: uuidv4(), userId, lat, lng, message, hasPhoto: Boolean(req.file) };
+  await publishEvent('notification.sos.triggered', payload);
+  res.status(202).json(payload);
+};
+
 const notification = express.Router();
 notification.get('/health', (_req, res) => res.json({ service: 'notification-service', status: 'ok' }));
+notification.get('/preferences/:userId', async (req, res) => {
+  if (!req.auth?.sub || req.auth.sub !== req.params.userId) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const existing = await prisma.notificationPreference.findUnique({ where: { userId: req.params.userId } });
+  res.json(
+    existing ?? {
+      userId: req.params.userId,
+      pushEnabled: true,
+      smsEnabled: false,
+      emailEnabled: false,
+      fcmToken: null
+    }
+  );
+});
 notification.put('/preferences/:userId', async (req, res) => {
+  if (!req.auth?.sub || req.auth.sub !== req.params.userId) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
   const next = await prisma.notificationPreference.upsert({
     where: { userId: req.params.userId },
-    create: { id: uuidv4(), userId: req.params.userId, pushEnabled: Boolean(req.body.push), smsEnabled: Boolean(req.body.sms), emailEnabled: Boolean(req.body.email) },
-    update: { pushEnabled: Boolean(req.body.push), smsEnabled: Boolean(req.body.sms), emailEnabled: Boolean(req.body.email) }
+    create: {
+      id: uuidv4(),
+      userId: req.params.userId,
+      pushEnabled: Boolean(req.body.push),
+      smsEnabled: Boolean(req.body.sms),
+      emailEnabled: Boolean(req.body.email),
+      fcmToken: req.body.fcmToken ? String(req.body.fcmToken) : null
+    },
+    update: {
+      pushEnabled: Boolean(req.body.push),
+      smsEnabled: Boolean(req.body.sms),
+      emailEnabled: Boolean(req.body.email),
+      ...(req.body.fcmToken !== undefined ? { fcmToken: req.body.fcmToken ? String(req.body.fcmToken) : null } : {})
+    }
   });
   res.json(next);
+});
+notification.post('/device-token', async (req, res) => {
+  const userId = req.auth?.sub;
+  if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+  const token = String(req.body.token ?? '');
+  await prisma.notificationPreference.upsert({
+    where: { userId },
+    create: {
+      id: uuidv4(),
+      userId,
+      pushEnabled: true,
+      smsEnabled: false,
+      emailEnabled: false,
+      fcmToken: token || null
+    },
+    update: { fcmToken: token || null }
+  });
+  res.status(204).send();
 });
 notification.post('/notify', async (req, res) => {
   const severity = (req.body.severity ?? 'info') as 'info' | 'warning' | 'emergency';
@@ -669,11 +751,7 @@ notification.post('/broadcast/officers', async (req, res) => {
   await publishEvent('notification.officer.broadcast', { message, stationId: req.body.stationId });
   res.status(202).json({ delivered: 'queued', message });
 });
-notification.post('/sos', async (req, res) => {
-  const payload = { id: uuidv4(), userId: String(req.body.userId ?? ''), lat: Number(req.body.lat), lng: Number(req.body.lng), message: String(req.body.message ?? 'SOS') };
-  await publishEvent('notification.sos.triggered', payload);
-  res.status(202).json(payload);
-});
+notification.post('/sos', upload.single('photo'), handleSos);
 notification.post('/notifications', async (req, res) => {
   const severity = (req.body.severity ?? 'info') as 'info' | 'warning' | 'emergency';
   const prefs = await prisma.notificationPreference.findUnique({ where: { userId: String(req.body.userId) } });
@@ -697,8 +775,20 @@ notification.post('/broadcast', async (req, res) => {
 const document = express.Router();
 document.get('/health', (_req, res) => res.json({ service: 'document-service', status: 'ok' }));
 document.post('/documents/:type', async (req, res) => {
-  const doc = await prisma.document.create({ data: { id: uuidv4(), documentType: req.params.type, subjectId: String(req.body.subjectId ?? 'unknown'), checksum: crypto.createHash('sha256').update(JSON.stringify(req.body ?? {})).digest('hex') } });
-  res.status(201).json(doc);
+  const doc = await prisma.document.create({
+    data: {
+      id: uuidv4(),
+      documentType: req.params.type,
+      subjectId: String(req.body.subjectId ?? req.auth?.sub ?? 'unknown'),
+      checksum: crypto.createHash('sha256').update(JSON.stringify(req.body ?? {})).digest('hex')
+    }
+  });
+  const payfastBase = process.env.PAYFAST_SANDBOX_URL ?? 'https://sandbox.payfast.co.za/eng/process';
+  const paymentUrl =
+    req.params.type === 'clearance'
+      ? `${payfastBase}?m_payment_id=${encodeURIComponent(doc.id)}&amount=${encodeURIComponent(String(req.body.amount ?? '140.00'))}&item_name=${encodeURIComponent('Police Clearance Certificate')}`
+      : undefined;
+  res.status(201).json(paymentUrl ? { ...doc, paymentUrl } : doc);
 });
 document.get('/documents/:id/pdf', async (req, res) => {
   const found = await prisma.document.findUnique({ where: { id: req.params.id } });
@@ -784,6 +874,7 @@ admin.get('/metrics', async (_req, res) => {
 });
 
 app.use('/auth', auth);
+app.post('/alerts/sos', authenticateJwt, sensitiveLimiter, upload.single('photo'), handleSos);
 app.use('/incident', authenticateJwt, sensitiveLimiter, incident);
 app.use('/case', authenticateJwt, sensitiveLimiter, cases);
 app.use('/arrest', authenticateJwt, sensitiveLimiter, arrest);

@@ -1,141 +1,225 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useMyReports, useIncidentStatus } from '../../hooks/useCivilianApi';
 
-const REPORTS = [
-  {
-    id: '#INC-4821', type: 'Theft', title: 'Laptop theft — Long Street Café',
-    status: 'Investigating', statusClass: 'b-act', date: '13 Apr · 14:35',
-    officer: 'Sgt. N. Dlamini', station: 'Cape Town Central', cas: 'CAS-082-25-02-2026',
-    progress: 3,
-    timeline: [
-      { label: 'Report submitted & acknowledged', time: '13 Apr · 14:35', state: 'done' },
-      { label: 'Assigned to Sgt. N. Dlamini', time: '13 Apr · 15:02', state: 'done' },
-      { label: 'Investigation in progress — CCTV reviewed', time: '13 Apr · 17:10', state: 'current' },
-      { label: 'Forensic / follow-up pending', time: 'Upcoming', state: 'todo' },
-      { label: 'Case resolution & closure', time: 'Pending', state: 'todo' },
-    ],
-  },
-  {
-    id: '#INC-4698', type: 'Vehicle', title: 'Vehicle break-in — Sea Point',
-    status: 'Assigned', statusClass: 'b-pen', date: '12 Apr', officer: 'Cst. Jacobs', progress: 2,
-  },
-  {
-    id: '#INC-4201', type: 'Fraud', title: 'Online fraud — banking',
-    status: 'Closed', statusClass: 'b-cl', date: '7 Apr', officer: 'Resolved', progress: 5,
-  },
-];
+const PIPELINE = ['pending', 'assigned', 'investigating', 'court_ready', 'closed'];
+
+function statusLabel(s) {
+  const m = {
+    pending: 'Pending',
+    assigned: 'Assigned',
+    investigating: 'Investigating',
+    court_ready: 'Court ready',
+    closed: 'Closed',
+    escalated: 'Escalated',
+  };
+  return m[s] || s;
+}
+
+function statusClass(s) {
+  if (s === 'closed') return 'b-cl';
+  if (s === 'pending') return 'b-pen';
+  if (s === 'investigating' || s === 'court_ready') return 'b-act';
+  return 'b-pen';
+}
+
+function Timeline({ status }) {
+  const idx = Math.max(0, PIPELINE.indexOf(status));
+  return (
+    <div className="card" style={{ marginBottom: 12 }}>
+      <div className="card-header">
+        <span className="card-title">Case Progress</span>
+      </div>
+      <div className="card-body">
+        <div className="timeline">
+          {PIPELINE.map((st, i) => {
+            const done = i < idx;
+            const current = i === idx;
+            const state = done ? 'done' : current ? 'current' : 'todo';
+            return (
+              <div key={st} className="tl-item">
+                <div className={`tl-dot ${state}`}>{done ? '✓' : current ? '●' : '○'}</div>
+                <div>
+                  <div className="tl-title">{statusLabel(st)}</div>
+                  <div className="tl-meta">{done ? 'Completed' : current ? 'Current stage' : 'Pending'}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function MyReports() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState(REPORTS[0]);
+  const location = useLocation();
+  const { reports, loading, error, reload } = useMyReports();
+  const [manualId, setManualId] = useState(null);
   const [filter, setFilter] = useState('All');
 
-  const filtered = filter === 'All' ? REPORTS : filter === 'Open' ? REPORTS.filter(r => r.status !== 'Closed') : REPORTS.filter(r => r.status === 'Closed');
+  const highlightId = location.state?.highlightId;
+  const activeId = manualId ?? highlightId ?? reports[0]?.id ?? null;
+  const selected = activeId ? reports.find((r) => r.id === activeId) ?? null : null;
+
+  const { statusPayload } = useIncidentStatus(selected?.id);
+
+  const merged = useMemo(() => {
+    if (!selected) return null;
+    const live = statusPayload?.status;
+    return { ...selected, status: live || selected.status };
+  }, [selected, statusPayload]);
+
+  const filtered = useMemo(() => {
+    if (filter === 'All') return reports;
+    if (filter === 'Open') return reports.filter((r) => r.status !== 'closed');
+    return reports.filter((r) => r.status === 'closed');
+  }, [reports, filter]);
+
+  const openCount = reports.filter((r) => r.status !== 'closed').length;
 
   return (
     <div className="page-wrap">
       <div className="page-intro">
         <div className="page-tag">Civilian · My Reports</div>
         <div className="page-title">My Reports — Case Tracker</div>
-        <div className="page-desc">All submitted reports with status, assigned officer and progress. Click any report to view full case timeline.</div>
+        <div className="page-desc">
+          Submitted incidents with live status from the API and Socket.IO updates.
+        </div>
       </div>
 
-      {/* Header + filters above the grid */}
+      {loading && <div className="alert alert-in">Loading reports…</div>}
+      {error && (
+        <div className="alert alert-wa">
+          Could not load reports. <button type="button" className="btn btn-secondary btn-sm" onClick={() => reload()}>Retry</button>
+        </div>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ flex: 1, fontWeight: 700, fontSize: 14 }}>My Reports</div>
         <div style={{ display: 'flex', gap: 6, marginRight: 12 }}>
-          {['All (3)', 'Open (2)', 'Closed (1)'].map(f => {
-            const key = f.split(' ')[0];
-            return (
-              <div key={key} onClick={() => setFilter(key)} style={{
-                padding: '3px 10px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
+          {[
+            ['All', reports.length],
+            ['Open', openCount],
+            ['Closed', reports.length - openCount],
+          ].map(([key, count]) => (
+            <div
+              key={key}
+              role="button"
+              tabIndex={0}
+              onClick={() => setFilter(key)}
+              onKeyDown={(e) => e.key === 'Enter' && setFilter(key)}
+              style={{
+                padding: '3px 10px',
+                borderRadius: 4,
+                fontSize: 11,
+                cursor: 'pointer',
                 background: filter === key ? 'rgba(59,130,246,.1)' : 'var(--s3)',
                 border: filter === key ? '1px solid var(--bl)' : '1px solid var(--bd)',
                 color: filter === key ? 'var(--blb)' : 'var(--txd)',
-              }}>{f}</div>
-            );
-          })}
+              }}
+            >
+              {key} ({count})
+            </div>
+          ))}
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => navigate('/civilian/report')}>+ New Report</button>
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => navigate('/civilian/report')}>
+          + New Report
+        </button>
       </div>
 
       <div className="layout-master-detail">
-        {/* List */}
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {filtered.map(r => (
-              <div key={r.id} onClick={() => setSelected(r)} style={{
-                padding: 12, borderRadius: 8, cursor: 'pointer',
-                background: selected?.id === r.id ? 'rgba(59,130,246,.04)' : r.status === 'Closed' ? 'var(--s2)' : 'var(--s2)',
-                border: selected?.id === r.id ? '1px solid rgba(59,130,246,.25)' : '1px solid var(--bd)',
-                opacity: r.status === 'Closed' ? .65 : 1,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--blb)' }}>{r.id}</span>
-                  <span className={`b ${r.statusClass}`}>{r.status}</span>
+            {!loading && filtered.length === 0 && (
+              <div className="alert alert-in">No reports yet. Submit an incident to see it here.</div>
+            )}
+            {filtered.map((r) => {
+              const st = r.status;
+              return (
+                <div
+                  key={r.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setManualId(r.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && setManualId(r.id)}
+                  style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    background: selected?.id === r.id ? 'rgba(59,130,246,.04)' : 'var(--s2)',
+                    border: selected?.id === r.id ? '1px solid rgba(59,130,246,.25)' : '1px solid var(--bd)',
+                    opacity: st === 'closed' ? 0.65 : 1,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--blb)' }}>
+                      {r.id.slice(0, 8)}…
+                    </span>
+                    <span className={`b ${statusClass(st)}`}>{statusLabel(st)}</span>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{r.incidentType}</div>
+                  <div style={{ fontSize: 11, color: 'var(--txd)', marginBottom: 8 }}>
+                    {r.description?.slice(0, 80)}
+                    {(r.description?.length || 0) > 80 ? '…' : ''}
+                  </div>
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    {PIPELINE.map((_, i) => {
+                      const p = PIPELINE.indexOf(st) >= 0 ? PIPELINE.indexOf(st) : 0;
+                      const s = i + 1;
+                      return (
+                        <div
+                          key={s}
+                          style={{
+                            flex: 1,
+                            height: 3,
+                            borderRadius: 1,
+                            background: s <= p + 1 ? (s < p + 1 ? 'var(--gn)' : 'var(--bl)') : 'var(--s3)',
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{r.title}</div>
-                <div style={{ fontSize: 11, color: 'var(--txd)', marginBottom: 8 }}>Submitted {r.date} · {r.officer}</div>
-                <div style={{ display: 'flex', gap: 3 }}>
-                  {[1,2,3,4,5].map(s => (
-                    <div key={s} style={{ flex: 1, height: 3, borderRadius: 1, background: s <= r.progress ? (s < r.progress ? 'var(--gn)' : 'var(--bl)') : 'var(--s3)' }} />
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Detail */}
-        {selected && (
+        {merged && (
           <div className="card" style={{ position: 'sticky', top: 18 }}>
             <div className="card-header">
               <div>
-                <div className="mono" style={{ fontSize: 10, color: 'var(--txd)' }}>{selected.id}</div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{selected.title}</div>
+                <div className="mono" style={{ fontSize: 10, color: 'var(--txd)' }}>
+                  {merged.id}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{merged.incidentType}</div>
               </div>
-              <span className={`b ${selected.statusClass}`}>{selected.status}</span>
+              <span className={`b ${statusClass(merged.status)}`}>{statusLabel(merged.status)}</span>
             </div>
             <div className="card-body">
               <div className="g2" style={{ marginBottom: 14, gap: 8, fontSize: 12 }}>
                 <div>
                   <div style={{ fontSize: 9, color: 'var(--txd)', marginBottom: 2 }}>ASSIGNED OFFICER</div>
-                  <div style={{ fontWeight: 600 }}>{selected.officer || '—'}</div>
-                  {selected.station && <div style={{ color: 'var(--txd)', fontSize: 11 }}>{selected.station}</div>}
+                  <div style={{ fontWeight: 600 }}>{merged.assignedOfficerId ? merged.assignedOfficerId.slice(0, 8) + '…' : '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 9, color: 'var(--txd)', marginBottom: 2 }}>CAS NUMBER</div>
-                  <div className="mono" style={{ fontSize: 11 }}>{selected.cas || '—'}</div>
+                  <div style={{ fontSize: 9, color: 'var(--txd)', marginBottom: 2 }}>LOCATION</div>
+                  <div className="mono" style={{ fontSize: 11 }}>
+                    {merged.locationLat?.toFixed?.(4)}, {merged.locationLng?.toFixed?.(4)}
+                  </div>
                 </div>
               </div>
 
-              {selected.timeline && (
-                <div className="card" style={{ marginBottom: 12 }}>
-                  <div className="card-header"><span className="card-title">Case Progress</span></div>
-                  <div className="card-body">
-                    <div className="timeline">
-                      {selected.timeline.map((t, i) => (
-                        <div key={i} className="tl-item">
-                          <div className={`tl-dot ${t.state}`}>{t.state === 'done' ? '✓' : t.state === 'current' ? '●' : '○'}</div>
-                          <div>
-                            <div className="tl-title">{t.label}</div>
-                            <div className="tl-meta">{t.time}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+              <Timeline status={merged.status} />
 
               <div className="card">
-                <div className="card-header"><span className="card-title">Add Follow-up Information</span></div>
-                <div className="card-body">
-                  <div className="form-group">
-                    <label className="form-label">Additional details or updates</label>
-                    <textarea className="form-textarea" rows={3} placeholder="e.g. I remembered the suspect had a tattoo on his right arm…" />
-                  </div>
-                  <button className="btn btn-primary btn-sm">Submit Update</button>
+                <div className="card-header">
+                  <span className="card-title">Description</span>
+                </div>
+                <div className="card-body" style={{ fontSize: 12, whiteSpace: 'pre-wrap' }}>
+                  {merged.description}
                 </div>
               </div>
             </div>

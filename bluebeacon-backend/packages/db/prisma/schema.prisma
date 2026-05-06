@@ -204,6 +204,7 @@ model NotificationPreference {
   pushEnabled  Boolean @default(true)
   smsEnabled   Boolean @default(false)
   emailEnabled Boolean @default(false)
+  fcmToken     String?
 }
 
 model Notification {

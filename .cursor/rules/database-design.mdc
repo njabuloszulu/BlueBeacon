@@ -1,0 +1,13 @@
+---
+description: "Database schema rules"
+globs:
+  - "migrations/**/*.sql"
+  - "models/**/*.ts"
+---
+
+# Database Design Rules
+
+- Use UUID as PK for all tables.
+- Enforce ENUM values exactly as defined in guide (e.g., incident status: pending | assigned | investigating | closed | escalated).
+- Chain-of-custody must be stored as JSONB with officer ID, timestamp, and reason.
+- Apply foreign keys for all relationships (incident → docket → arrest → warrant → evidence).

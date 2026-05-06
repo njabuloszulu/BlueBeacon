@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Sidebar from './Sidebar';
 import { useApp } from '../../context/AppContext';
 
@@ -16,6 +17,7 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <Toaster position="top-right" toastOptions={{ duration: 5000 }} />
       {/* Top nav bar */}
       <nav style={{
         height: 44,

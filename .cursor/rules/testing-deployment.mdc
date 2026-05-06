@@ -1,0 +1,12 @@
+---
+description: "Testing & deployment rules"
+globs:
+  - "tests/**/*.ts"
+---
+
+# Testing & Deployment Rules
+
+- Unit tests: minimum 80% coverage.
+- Integration tests: all API endpoints tested with Supertest/Postman.
+- End-to-end tests: simulate civilian, officer, and judge journeys with Cypress/Playwright.
+- CI/CD pipeline must use GitHub Actions + Docker + Kubernetes.
