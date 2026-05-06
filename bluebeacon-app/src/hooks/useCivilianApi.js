@@ -107,6 +107,56 @@ export function useMapLayers() {
   return { geojson, loading, error, reload: load };
 }
 
+function timeAgo(value) {
+  const ts = value ? new Date(value).getTime() : NaN;
+  if (!Number.isFinite(ts)) return 'recent';
+  const deltaMinutes = Math.max(1, Math.floor((Date.now() - ts) / 60000));
+  if (deltaMinutes < 60) return `${deltaMinutes}m ago`;
+  const deltaHours = Math.floor(deltaMinutes / 60);
+  if (deltaHours < 24) return `${deltaHours}h ago`;
+  const deltaDays = Math.floor(deltaHours / 24);
+  return `${deltaDays}d ago`;
+}
+
+export function useDashboardAlerts() {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.get('/map/map/layers', { params: { role: 'civilian' } });
+      const features = Array.isArray(data?.features) ? data.features : [];
+      const nextAlerts = features
+        .filter((feature) => feature?.properties?.category === 'alert')
+        .map((feature, index) => {
+          const props = feature.properties ?? {};
+          return {
+            id: props.id || `alert-${index}`,
+            severity: String(props.severity || '').toLowerCase(),
+            title: props.name || 'Area safety alert',
+            sub: props.description || props.detail || props.area || 'Nearby incident reported',
+            time: timeAgo(props.createdAt || props.updatedAt || props.timestamp),
+          };
+        });
+      setAlerts(nextAlerts);
+    } catch (e) {
+      setError(e);
+      setAlerts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return { alerts, loading, error, reload: load };
+}
+
 export function useSubmitClearance() {
   const submitClearance = useCallback(async (body) => {
     const { data } = await api.post('/document/documents/clearance', body);

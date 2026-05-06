@@ -204,7 +204,16 @@ auth.post('/login', validateBody(loginSchema), async (req, res) => {
     sameSite: 'lax',
     maxAge: env.JWT_REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000
   });
-  res.json({ accessToken, user: { id: user.id, fullName: user.fullName, role: user.role, stationId: user.stationId } });
+  res.json({
+    accessToken,
+    user: {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      stationId: user.stationId
+    }
+  });
 });
 auth.post('/refresh', async (req, res) => {
   const token = req.cookies.refresh_token as string | undefined;
