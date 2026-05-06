@@ -4,9 +4,13 @@ import { subscribeIncidentUpdates } from '../services/websocket';
 
 const PAYFAST_BASE =
   import.meta.env.VITE_PAYFAST_SANDBOX_URL || 'https://sandbox.payfast.co.za/eng/process';
+const PAYFAST_MERCHANT_ID = import.meta.env.VITE_PAYFAST_MERCHANT_ID || '10000100';
+const PAYFAST_MERCHANT_KEY = import.meta.env.VITE_PAYFAST_MERCHANT_KEY || '46f0cd694581a';
 
 export function buildPayfastFineUrl({ reference, amount, itemName }) {
   const q = new URLSearchParams({
+    merchant_id: PAYFAST_MERCHANT_ID,
+    merchant_key: PAYFAST_MERCHANT_KEY,
     m_payment_id: reference,
     amount: String(amount),
     item_name: itemName || 'Traffic fine payment',

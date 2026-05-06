@@ -793,9 +793,11 @@ document.post('/documents/:type', async (req, res) => {
     }
   });
   const payfastBase = process.env.PAYFAST_SANDBOX_URL ?? 'https://sandbox.payfast.co.za/eng/process';
+  const payfastMerchantId = process.env.PAYFAST_MERCHANT_ID ?? '10000100';
+  const payfastMerchantKey = process.env.PAYFAST_MERCHANT_KEY ?? '46f0cd694581a';
   const paymentUrl =
     req.params.type === 'clearance'
-      ? `${payfastBase}?m_payment_id=${encodeURIComponent(doc.id)}&amount=${encodeURIComponent(String(req.body.amount ?? '140.00'))}&item_name=${encodeURIComponent('Police Clearance Certificate')}`
+      ? `${payfastBase}?merchant_id=${encodeURIComponent(payfastMerchantId)}&merchant_key=${encodeURIComponent(payfastMerchantKey)}&m_payment_id=${encodeURIComponent(doc.id)}&amount=${encodeURIComponent(String(req.body.amount ?? '140.00'))}&item_name=${encodeURIComponent('Police Clearance Certificate')}`
       : undefined;
   res.status(201).json(paymentUrl ? { ...doc, paymentUrl } : doc);
 });
